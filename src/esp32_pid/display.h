@@ -32,7 +32,7 @@ class Display
 {
   public:
     Display(int update_ms, double *Input, double *SetPoint, double *Output, 
-            double *Kp, double *Ki, double *Kd, bool *tick, 
+            double *Kp, double *Ki, double *Kd, 
             double *Kp2, double *Ki2, double *Kd2, int *pid2Band,
             bool *OperatingMode, int *SampleTime, bool *PidDirection,
             double *pOutput, double *iOutput, double *dOutput,
@@ -55,7 +55,6 @@ class Display
     double *_Ki2;
     double *_Kd2;
     int *_pid2Band;
-    bool *_tick;
     int *_SampleTime;
     bool *_OperatingMode;
     bool *_PidDirection;
@@ -76,7 +75,6 @@ class Display
     void draw_setpoint_section();
     void draw_mode_section();
     void draw_pid_section();
-    void draw_tick_section();
     void draw_chart_section();
     void draw_manual_output_section();
     void draw_settings_section();

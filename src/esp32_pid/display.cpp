@@ -58,7 +58,7 @@ double getArrayMax(double a[], int length){
 TFT_eSPI tft = TFT_eSPI();
 
 Display::Display(int update_ms, double *Input, double *SetPoint, double *Output, 
-            double *Kp, double *Ki, double *Kd, bool *tick, 
+            double *Kp, double *Ki, double *Kd, 
             double *Kp2, double *Ki2, double *Kd2, int *pid2Band,
             bool *OperatingMode, int *SampleTime, bool *PidDirection,
             double *pOutput, double *iOutput, double *dOutput,
@@ -76,7 +76,6 @@ Display::Display(int update_ms, double *Input, double *SetPoint, double *Output,
   _Ki2 = Ki2;
   _Kd2 = Kd2;
   _pid2Band = pid2Band;
-  _tick = tick;
   _SampleTime = SampleTime;
   _OperatingMode = OperatingMode;
   _PidDirection = PidDirection;
@@ -284,7 +283,6 @@ void Display::update_non_chart_area_immediately(){
       this->draw_mode_section();
       this->draw_setpoint_section();
       this->draw_pid_section();
-      // this->draw_tick_section();
     }else{
       this->draw_mode_section();
       this->draw_setpoint_section();
@@ -420,12 +418,6 @@ void Display::draw_settings_section(){
  
   if( *_saveSettings){ _draw_menu_item("....", 160, lineSpace*6, SELECTEDITEM_SAVE ); }
   else{ _draw_menu_item("Save", 160, lineSpace*6, SELECTEDITEM_SAVE ); }
-}
-
-void Display::draw_tick_section(){
-  // if(*_tick){_draw_text(".", 220, lineSpace*1,2,DEFAULT_TEXT_COLOR, DEFAULT_BG_COLOR );}
-  // else{_draw_text(".", 220, lineSpace*1,2,DEFAULT_BG_COLOR, DEFAULT_BG_COLOR );}
-  // *_tick = !*_tick;
 }
 
 void Display::draw_manual_output_section(){

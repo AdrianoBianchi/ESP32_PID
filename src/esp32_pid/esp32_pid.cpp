@@ -1,104 +1,100 @@
 #include "Arduino.h"
 #include "esp32_pid.h"
-#include "display.h"
-#include "pid.h"
-#include "controls.h"
-#include "data_logger.h"
-#include "settings_store.h"
-
-// INITIAL SETTINGS PARAMETERS
-double SetPoint = 80;
-bool PidDirection = DIRECT;
-int SampleTime = 1000;
-double Kp=5, Ki=0, Kd=0;
-double Kp2=10, Ki2=0, Kd2=0;
-int pid2Band = 10;
-int dataLogDelay = 10000; // 10 seconds - gives about 40 minutes of chart
-int SettingAdjustmentMultiple = 1;
 
 
-Display *oLed;
-PID *myPID;
-Controls *controls;
-DataLogger *inputLog;
-DataLogger *setPointLog;
-DataLogger *outputLog;
-SettingsStore *mySettings;
-
-double pOutput, iOutput, dOutput;
-double lastKp=Kp, lastKi=Ki, lastKd=Kd;
-double lastKp2=Kp2, lastKi2=Ki2, lastKd2=Kd2;
-bool tick = false;
-bool resetPid = false;
-bool saveSettings = false;
-bool OperatingMode = AUTOMATIC;
-bool UsePrimaryPID = true;
-bool lastUsePrimaryPID = true;
-bool LastOperatingMode = OperatingMode;
-bool LastPidDirection = PidDirection;
-int LastSampleTime = SampleTime;
-int ManualOutput = 0;
-int ControlState;
+double Input = 0;
+double (*readInputFunction)();
+TaskHandle_t Core2Task;
 
 
-
-ESP32PID::ESP32PID(double *Input, double *Output, bool debug)
-{
-  _Input = Input;
-  _Output = Output;
-  
-  mySettings = new SettingsStore(&SetPoint, &Kp, &Ki, &Kd, &Kp2, &Ki2, &Kd2, &PidDirection, &SampleTime, &pid2Band, &SettingAdjustmentMultiple);
-  mySettings->load();
-  if(debug){dataLogDelay = 500;}
-  inputLog = new DataLogger(dataLogDelay);
-  setPointLog = new DataLogger(dataLogDelay);
-  outputLog = new DataLogger(dataLogDelay);
-  oLed = new Display(200, Input, &SetPoint, &PidOutput, &Kp, &Ki, &Kd, &tick, &Kp2, &Ki2, &Kd2, &pid2Band, &OperatingMode, &SampleTime, &PidDirection, &pOutput, &iOutput, &dOutput, &ManualOutput, &resetPid, &saveSettings, &UsePrimaryPID, &SettingAdjustmentMultiple, inputLog, setPointLog, outputLog);
-  controls = new Controls(0,35,100,500);
-  myPID = new PID(Input, &PidOutput, &SetPoint, &pOutput, &iOutput, &dOutput, Kp, Ki, Kd, PidDirection);
-  myPID->SetMode(OperatingMode);
-  myPID->SetSampleTime(SampleTime);
-  myPID->SetOutputLimits(0, 100);
+void core2Loop( void * pvParameters ){
+  for(;;) {
+    Input = (*readInputFunction)();
+    vTaskDelay( pdMS_TO_TICKS( 10 ) );
+  }
+  vTaskDelete( NULL );
 }
 
+
+ESP32PID::ESP32PID(double (*readInputF)(), void (*setOutputF)(double), struct esp32_pid_settings settings)
+{
+  readInputFunction = readInputF;
+  _setOutputF = setOutputF;
+  _settings = settings;
+  initialize();
+}
+
+ESP32PID::ESP32PID(double (*readInputF)(), void (*setOutputF)(double) )
+{
+  readInputFunction = readInputF;
+  _setOutputF = setOutputF;
+  initialize();
+}
+
+void ESP32PID::initialize(){
+  last.Kp = _settings.Kp;
+  last.Ki = _settings.Ki;
+  last.Kd = _settings.Kd; 
+  last.Kp2 = _settings.Kp2;
+  last.Ki2 = _settings.Ki2; 
+  last.Kd2 = _settings.Kd2; 
+  last.OperatingMode = _settings.OperatingMode;
+  last.PidDirection = _settings.PidDirection;
+  last.SampleTime = _settings.SampleTime;
+
+  mySettings = new SettingsStore(&_settings.SetPoint, &_settings.Kp, &_settings.Ki, &_settings.Kd, &_settings.Kp2, &_settings.Ki2, &_settings.Kd2, &_settings.PidDirection, &_settings.SampleTime, &_settings.pid2Band, &_settings.SettingAdjustmentMultiple);
+  mySettings->load();
+  // if(debug){_settings.dataLogDelay = 500;}
+  inputLog = new DataLogger(_settings.dataLogDelay);
+  setPointLog = new DataLogger(_settings.dataLogDelay);
+  outputLog = new DataLogger(_settings.dataLogDelay);
+  oLed = new Display(200, &Input, &_settings.SetPoint, &PidOutputSum, &_settings.Kp, &_settings.Ki, &_settings.Kd, &_settings.Kp2, &_settings.Ki2, &_settings.Kd2, &_settings.pid2Band, &_settings.OperatingMode, &_settings.SampleTime, &_settings.PidDirection, &PidOutputP, &PidOutputI, &PidOutputD, &ManualOutput, &resetPid, &saveSettings, &UsePrimaryPID, &_settings.SettingAdjustmentMultiple, inputLog, setPointLog, outputLog);
+  controls = new Controls(0,35,100,500);
+  myPID = new PID(&Input, &PidOutputSum, &_settings.SetPoint, &PidOutputP, &PidOutputI, &PidOutputD, _settings.Kp, _settings.Ki, _settings.Kd, _settings.PidDirection);
+  myPID->SetMode(_settings.OperatingMode);
+  myPID->SetSampleTime(_settings.SampleTime);
+  myPID->SetOutputLimits(0, 100);
+  xTaskCreatePinnedToCore(core2Loop, "Core2Task", 10000, NULL, 0, &Core2Task, 0);
+}
 
 void ESP32PID::loop()
 {
   syncSettings();
-  if( _failsafeEnabled && OperatingMode == AUTOMATIC &&
-      (*_Input <= _failsafeMinInput || *_Input >= _failsafeMaxInput) ){
+  if( failsafe.Enabled && _settings.OperatingMode == AUTOMATIC &&
+      (Input <= failsafe.MinInput || Input >= failsafe.MaxInput) ){
     // BAD READING FROM INPUT SENSOR - DISABLE OUTPUT
-    *_Output = _failsafeOutputValue;
+    myOutput = failsafe.OutputValue;
     outputLog->logData(0);
   }
-  else if(OperatingMode == AUTOMATIC){
+  else if(_settings.OperatingMode == AUTOMATIC){
     myPID->Compute();
-    *_Output = PidOutput;
-    outputLog->logData(PidOutput);
+    myOutput = PidOutputSum;
+    outputLog->logData(PidOutputSum);
   }
-  else if(OperatingMode == MANUAL){
-    *_Output = double(ManualOutput);
+  else if(_settings.OperatingMode == MANUAL){
+    myOutput = double(ManualOutput);
     outputLog->logData(double(ManualOutput));
   }
   oLed->processControlInput(controls->getState());
   oLed->update_();
-  inputLog->logData(*_Input);
-  setPointLog->logData(SetPoint);
+  inputLog->logData(Input);
+  setPointLog->logData(_settings.SetPoint);
+  _setOutputF(myOutput);
 
 }
 
 
 void ESP32PID::setFailsafe(int outputState, int min, int max){
-  _failsafeEnabled = true;
-  _failsafeMinInput = min;
-  _failsafeMaxInput = max;
-  _failsafeOutputValue = outputState;
+  failsafe.Enabled = true;
+  failsafe.MinInput = min;
+  failsafe.MaxInput = max;
+  failsafe.OutputValue = outputState;
 
 }
 
 void ESP32PID::syncSettings(){
 
-  if(abs(*_Input - SetPoint) < pid2Band ){ UsePrimaryPID = true;} else{UsePrimaryPID = false;}
+  if(abs(Input - _settings.SetPoint) < _settings.pid2Band ){ UsePrimaryPID = true;} else{UsePrimaryPID = false;}
 
   if(resetPid){
     myPID->Reset();
@@ -108,35 +104,34 @@ void ESP32PID::syncSettings(){
     mySettings->save();
     saveSettings = false;
   }
-  if(LastOperatingMode != OperatingMode){
-     myPID->SetMode(OperatingMode);
-     LastOperatingMode = OperatingMode;
+  if(last.OperatingMode != _settings.OperatingMode){
+     myPID->SetMode(_settings.OperatingMode);
+     last.OperatingMode = _settings.OperatingMode;
   }
-  if(LastPidDirection != PidDirection){
-    myPID->SetControllerDirection(PidDirection);
-    LastPidDirection = PidDirection;
+  if(last.PidDirection != _settings.PidDirection){
+    myPID->SetControllerDirection(_settings.PidDirection);
+    last.PidDirection = _settings.PidDirection;
   }
-  if(LastSampleTime != SampleTime){
-    myPID->SetSampleTime(SampleTime);
-    LastSampleTime = SampleTime;
+  if(last.SampleTime != _settings.SampleTime){
+    myPID->SetSampleTime(_settings.SampleTime);
+    last.SampleTime = _settings.SampleTime;
   } 
 
-  if( (lastKp != Kp || lastKi != Ki || lastKd != Kd || lastUsePrimaryPID != UsePrimaryPID) && UsePrimaryPID){
-    myPID->SetTunings(Kp,Ki,Kd);
-    lastKp = Kp;
-    lastKi = Ki;
-    lastKd = Kd;
+  if( (last.Kp != _settings.Kp || last.Ki != _settings.Ki || last.Kd != _settings.Kd || last.UsePrimaryPID != UsePrimaryPID) && UsePrimaryPID){
+    myPID->SetTunings(_settings.Kp,_settings.Ki,_settings.Kd);
+    last.Kp = _settings.Kp;
+    last.Ki = _settings.Ki;
+    last.Kd = _settings.Kd;
   }
 
-  if((lastKp2 != Kp2 || lastKi2 != Ki2 || lastKd2 != Kd2 || lastUsePrimaryPID != UsePrimaryPID) && !UsePrimaryPID){
-    myPID->SetTunings(Kp2,Ki2,Kd2);
-    lastKp2 = Kp2;
-    lastKi2 = Ki2;
-    lastKd2 = Kd2;
+  if((last.Kp2 != _settings.Kp2 || last.Ki2 != _settings.Ki2 || last.Kd2 != _settings.Kd2 || last.UsePrimaryPID != UsePrimaryPID) && !UsePrimaryPID){
+    myPID->SetTunings(_settings.Kp2,_settings.Ki2,_settings.Kd2);
+    last.Kp2 = _settings.Kp2;
+    last.Ki2 = _settings.Ki2;
+    last.Kd2 = _settings.Kd2;
   }
-  lastUsePrimaryPID = UsePrimaryPID;
+  last.UsePrimaryPID = UsePrimaryPID;
 }
-
 
 
 

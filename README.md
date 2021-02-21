@@ -19,28 +19,36 @@ You will need to have your [Arduino IDE](https://www.arduino.cc/en/software) ins
 ### 2. Configure ###
 After downloading the project to your local machine, open the [esp32_pid/src/esp32_pid/esp32_pid.ino](https://bitbucket.org/jason955/esp32_pid/src/master/src/esp32_pid/esp32_pid.ino) file.
 
-Configure and implement your input and output devices by using the 3 hook functions provided.
-
+Configure and implement your input and output devices by using the 2 hook functions provided.
 
 
 ```c++
-    void mySetup(){
+    #include "esp32_pid.h"
+    ESP32PID *myESP32PID;
+
+
+    double readInput(){
+      // Place code here that returns the value of your input device
+      // This gets called continuously in the background
+      // return  mySensor.getTemp();
+    }
+    void setOutput(double PidOutput){
+      // Place Code in this function to set the output value
+      // the PidOutput variable from 0-100
+      // myHeater->setOutput( PidOutput / 100.0 );
+    }
+
+
+    void setup(void){
       // Initialize your input and output sensors
-      //
       // mySensor = new Sensor();
       // myHeater = new OutputDevice();
+      
+      // Initialize ESP32PID
+      myESP32PID = new ESP32PID(readInput, setOutput);
     }
-    void myloop(){
-      // Place Code Here That Writes to the Output
-      // use the global Output variable which ranges from 0-100
-      //
-      // myHeater->setOutput( Output / 100.0 );
-    }
-    void readInput(){
-      // Place code here that reads your input and sets the global Input variable
-      // This gets called continuously
-      //
-      //Input = mySensor.getTemp();
+    void loop(void){
+      myESP32PID->loop();
     }
 
 ```
