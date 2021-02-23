@@ -204,6 +204,6 @@ You can Long Press Button 1 to toggle between screens.  There are 3 screens to t
 
 # Examples #
 
-* [**Heater Controller** - Output = Solid State Relay Heater; Input = Dallas Temp Sensor DS18B20](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
+* [**Incubator Heat Controller**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
 
 
