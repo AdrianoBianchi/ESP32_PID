@@ -13,6 +13,16 @@ The goal of this project is to create super simple yet fully-feature [PID contro
 * Windowed Output Mode - For mechanical relays
 
 
+# Example Projects #
+
+* [**Dummy Sensors**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DummyInputOutputNoSensors/) - Try the project without configuring input and outputs
+
+* [**Incubator Temp Controller**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
+
+* [**Humidistat**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/HumidityController/)
+
+
+
 # Getting Started #
 
 ### 1. Prerequisites ###
@@ -55,74 +65,12 @@ All you need to do is add code the readInput and setOutput functions to read fro
 
 ```
 
-
+See [Additional Configuration Options](#markdown-header-additional-configuration-options) below.
 
 
 ### 3. Upload ###
 
-Upload the code to your device and that's it!  You can find additional configurations in the [Examples](#markdown-header-examples) section below.
-
-
-# Additional Configuration Options #
-
-
-
-### Failsafe ###
-
-You can implement basic failsafe functionality by specifing the minimum and maximum valid sensor values and a default output value.  If the sensor value falls outside this range, the output will default the failsafe output state.  This can prevent an overheating in a heating PID in the event a sensor is disconnected.
-
-```c++
-  myESP32PID = new ESP32PID(readInput, setOutput);
-  int failsafeOutputState = 0; // this should be a value between 0 and 100
-  int min=-100; // if input sensor reads below -100 the output will be set to the failsafeOutputState of 0
-  int max=1000; // if input sensor reads above 1000, set output to 0
-  myESP32PID->setFailsafe(failsafeOutputState, min, max);
-```
-
-### Windowed Mode ###
-
-If your output is a mechanical relay, it can only output on or off.  You can use Windowed mode to turn on and off the relay for a percentage of a window period you define.
-
-For example with a window size of 100 seconds and a PID output value of 25%, output will be switched (output set to 100) on for 25 seconds and then off (output set to 0) for 75 seconds.
-
-```c++
-  myESP32PID = new ESP32PID(readInput, setOutput);
-  myESP32PID.useOutputWindow(100); // use a window period of 100 seconds.
-```
-
-
-### Advanced Parameters ###
-
-You can pass a third parameter when creating a new ESP32PID object that takes a struct contining your settings.  
-
-```c++
-
-struct esp32_pid_settings settings;
-
-settings.SetPoint = 100;
-myESP32PID = new ESP32PID(readInput, setOutput, settings);
-
-
-// Available Settings: 
-// IMPORTANT - If these values have already been written to the EEPROM, the EEPROM values will be used.
-//
-// double SetPoint = 80;
-// bool PidDirection = DIRECT;
-// bool OperatingMode = AUTOMATIC;
-// int SampleTime = 1000;
-// double Kp=5;
-// double Ki=0;
-// double Kd=0;
-// double Kp2=10;
-// double Ki2=0;
-// double Kd2=0;
-// int pid2Band = 10;
-// int dataLogDelay = 10000; // 10 seconds - gives about 40 minutes of chart
-// int SettingAdjustmentMultiple = 1;
-
-
-```
-
+Upload the code to your device and that's it!
 
 
 
@@ -202,10 +150,61 @@ You can Long Press Button 1 to toggle between screens.  There are 3 screens to t
 
 
 
-# Examples #
+# Additional Configuration Options #
 
-* [**Dummy Sensors**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DummyInputOutputNoSensors/) - Try the project without configuring input and outputs
+### Failsafe ###
 
-* [**Incubator Temp Controller**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
+You can implement basic failsafe functionality by specifing the minimum and maximum valid sensor values and a default output value.  If the sensor value falls outside this range, the output will default the failsafe output state.  This can prevent an overheating in a heating PID in the event a sensor is disconnected.
 
-* [**Humidistat**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/HumidityController/)
+```c++
+  myESP32PID = new ESP32PID(readInput, setOutput);
+  int failsafeOutputState = 0; // this should be a value between 0 and 100
+  int min=-100; // if input sensor reads below -100 the output will be set to the failsafeOutputState of 0
+  int max=1000; // if input sensor reads above 1000, set output to 0
+  myESP32PID->setFailsafe(failsafeOutputState, min, max);
+```
+
+### Windowed Mode ###
+
+If your output is a mechanical relay, it can only output on or off.  You can use Windowed mode to turn on and off the relay for a percentage of a window period you define.
+
+For example with a window size of 100 seconds and a PID output value of 25%, output will be switched (output set to 100) on for 25 seconds and then off (output set to 0) for 75 seconds.
+
+```c++
+  myESP32PID = new ESP32PID(readInput, setOutput);
+  myESP32PID.useOutputWindow(100); // use a window period of 100 seconds.
+```
+
+
+### Advanced Parameters ###
+
+You can pass a third parameter when creating a new ESP32PID object that takes a struct contining your settings.  
+
+```c++
+
+struct esp32_pid_settings settings;
+
+settings.SetPoint = 100;
+myESP32PID = new ESP32PID(readInput, setOutput, settings);
+
+
+// Available Settings: 
+// IMPORTANT - If these values have already been written to the EEPROM, the EEPROM values will be used.
+//
+// double SetPoint = 80;
+// bool PidDirection = DIRECT;
+// bool OperatingMode = AUTOMATIC;
+// int SampleTime = 1000;
+// double Kp=5;
+// double Ki=0;
+// double Kd=0;
+// double Kp2=10;
+// double Ki2=0;
+// double Kd2=0;
+// int pid2Band = 10;
+// int dataLogDelay = 10000; // 10 seconds - gives about 40 minutes of chart
+// int SettingAdjustmentMultiple = 1;
+
+
+```
+
