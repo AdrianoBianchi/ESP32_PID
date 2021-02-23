@@ -1,26 +1,28 @@
 # About #
 
-The goal of this project is to create a fully-feature yet simple to use PID controller based on the [TTGO ESP32 microcontroller](https://github.com/Xinyuan-LilyGO/TTGO-T-Display).  The project is made to be very generic with input and output devices, allowing the user to easily implement any type of devices they choose.
+The goal of this project is to create super simple yet fully-feature [PID controller](https://en.wikipedia.org/wiki/PID_controller) running on the [TTGO ESP32 microcontroller](https://github.com/Xinyuan-LilyGO/TTGO-T-Display).  The implementation is designed to be extremely flexible, allowing a user to quickly and easily get up and running their choice of imput and output sennsors/devices.
+
+![](https://bitbucket.org/jason955/esp32_pid/raw/master/img/TTGO.jpg)
 
 ### Features ###
-* Settings fully configurable through GUI
+* Settings are fully configurable through GUI
 * Charts showing historical input and output values
-* Persistent settings - save to EEPROM
+* Persistent settings - saves to EEPROM
 * Dual PIDs - agressive and conservative
-* Manual Override
+* Manual Override - Output can be set manually in the GUI
+* Windowed Output Mode - For mechanical relays
 
 
 # Getting Started #
 
 ### 1. Prerequisites ###
-You will need to have your [Arduino IDE](https://www.arduino.cc/en/software) installed and have it [set up to work with the ESP32 controller](https://randomnerdtutorials.com/installing-the-esp32-board-in-arduino-ide-windows-instructions/).  You should also have some experience working with arduino sensors.
+You will need to have the [Arduino IDE](https://www.arduino.cc/en/software) installed and [set up to work with the ESP32 controller](https://randomnerdtutorials.com/installing-the-esp32-board-in-arduino-ide-windows-instructions/).  You should also have some basic experience working with Arduino and peripherals.
 
 
 ### 2. Configure ###
-After downloading the project to your local machine, open the [esp32_pid/src/esp32_pid/esp32_pid.ino](https://bitbucket.org/jason955/esp32_pid/src/master/src/esp32_pid/esp32_pid.ino) file.
+Download the project to your local machine and use the template located in [esp32_pid/src/esp32_pid/esp32_pid.ino](https://bitbucket.org/jason955/esp32_pid/src/master/src/esp32_pid/esp32_pid.ino).
 
-Configure and implement your input and output devices by using the 2 hook functions provided.
-
+All you need to do is add code the readInput and setOutput functions to read from your input sensor (temp, humidity, level, etc) and write to your output (heater, humidifier, pump, etc).
 
 ```c++
     #include "esp32_pid.h"
@@ -54,38 +56,38 @@ Configure and implement your input and output devices by using the 2 hook functi
 ```
 
 
-You can find a working example of a DS18B20 Dallas Temperature Sensor and a Solid State Relay in [examples/DallasTempSensor_and_PWM_SSR/esp32_pid.ino](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/esp32_pid.ino).
 
 
 ### 3. Upload ###
 
-Upload the code to your device and you should be all set!
+Upload the code to your device and that's it!  You can find additional configurations in the [Examples](#markdown-header-examples) section below.
+
 
 # Additional Configuration Options #
 
 
 
-
-
 ### Failsafe ###
 
-You can set a basic failsafe by specifing the minimum and maximum valid sensor values.  If the sensor value falls outside this range, the output will default the failsafe output state.
+You can implement basic failsafe functionality by specifing the minimum and maximum valid sensor values and a default output value.  If the sensor value falls outside this range, the output will default the failsafe output state.  This can prevent an overheating in a heating PID in the event a sensor is disconnected.
 
 ```c++
   myESP32PID = new ESP32PID(readInput, setOutput);
   int failsafeOutputState = 0; // this should be a value between 0 and 100
-  int min=-100;
-  int max=1000;
+  int min=-100; // if input sensor reads below -100 the output will be set to the failsafeOutputState of 0
+  int max=1000; // if input sensor reads above 1000, set output to 0
   myESP32PID->setFailsafe(failsafeOutputState, min, max);
 ```
 
-### Window Mode (for mechanical relays) ###
+### Windowed Mode ###
 
-If your output is a mechanical relay you can use a method of switching on and off your relay by turning it on for a percentage of a defined window size.  For example with a window size of 100 seconds and an output value of 25%, the relay will be switched on for 25 seconds and then off for 75 seconds.
+If your output is a mechanical relay, it can only output on or off.  You can use Windowed mode to turn on and off the relay for a percentage of a window period you define.
+
+For example with a window size of 100 seconds and a PID output value of 25%, output will be switched (output set to 100) on for 25 seconds and then off (output set to 0) for 75 seconds.
 
 ```c++
   myESP32PID = new ESP32PID(readInput, setOutput);
-  myESP32PID.useOutputWindow(60); // use a window period of 60 seconds.
+  myESP32PID.useOutputWindow(100); // use a window period of 100 seconds.
 ```
 
 
@@ -101,21 +103,22 @@ settings.SetPoint = 100;
 myESP32PID = new ESP32PID(readInput, setOutput, settings);
 
 
-    // Available Settings:
-    //
-    // double SetPoint = 80;
-    // bool PidDirection = DIRECT;
-    // bool OperatingMode = AUTOMATIC;
-    // int SampleTime = 1000;
-    // double Kp=5;
-    // double Ki=0;
-    // double Kd=0;
-    // double Kp2=10;
-    // double Ki2=0;
-    // double Kd2=0;
-    // int pid2Band = 10;
-    // int dataLogDelay = 10000; // 10 seconds - gives about 40 minutes of chart
-    // int SettingAdjustmentMultiple = 1;
+// Available Settings: 
+// IMPORTANT - If these values have already been written to the EEPROM, the EEPROM values will be used.
+//
+// double SetPoint = 80;
+// bool PidDirection = DIRECT;
+// bool OperatingMode = AUTOMATIC;
+// int SampleTime = 1000;
+// double Kp=5;
+// double Ki=0;
+// double Kd=0;
+// double Kp2=10;
+// double Ki2=0;
+// double Kd2=0;
+// int pid2Band = 10;
+// int dataLogDelay = 10000; // 10 seconds - gives about 40 minutes of chart
+// int SettingAdjustmentMultiple = 1;
 
 
 ```
@@ -132,7 +135,7 @@ myESP32PID = new ESP32PID(readInput, setOutput, settings);
 **Button 1**
 
 * Short Press - Move Up / Increase Value
-* Long Press - Toggle Screen Mode (Home, Large Chart, Advanced Settings)
+* Long Press - Toggle Screen (Home, Large Chart, Advanced Settings)
 
 
 **Button 2**
@@ -156,13 +159,11 @@ Long Press Button 2 to change to Edit Mode for the selected parameter.  The sele
 
 To exit Edit Mode and return to Select Mode, long press on either button.
 
-**Screen Mode**
-
-When in Select Mode you can Long Press Button 1 to toggle between screen modes.  There are 3 screens to toggle between (see below) Home, Large Chart and Advanced Settings.
 
 
 ## Screens ##
 
+You can Long Press Button 1 to toggle between screens.  There are 3 screens to toggle between Home, Large Chart and Advanced Settings.
 
 ### Home Screen ###
 
@@ -203,12 +204,6 @@ When in Select Mode you can Long Press Button 1 to toggle between screen modes. 
 
 # Examples #
 
-### Solid State Relay Temp Controller ###
-
-![](https://bitbucket.org/jason955/esp32_pid/raw/master/examples/DallasTempSensor_and_PWM_SSR/Strip1.jpg)
-![](https://bitbucket.org/jason955/esp32_pid/raw/master/examples/DallasTempSensor_and_PWM_SSR/Strip2.jpg)
-
-[examples/DallasTempSensor_and_PWM_SSR/esp32_pid.ino](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/esp32_pid.ino)
+* [**Heater Controller** - Output = Solid State Relay Heater; Input = Dallas Temp Sensor DS18B20](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
 
 
-All files including Fusion 360 and STL files can be found [here](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
