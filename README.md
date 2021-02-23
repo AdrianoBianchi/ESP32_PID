@@ -204,6 +204,8 @@ You can Long Press Button 1 to toggle between screens.  There are 3 screens to t
 
 # Examples #
 
-* [**Incubator Heat Controller**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
+* [**Dummy Sensors**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DummyInputOutputNoSensors/) - Try the project without configuring input and outputs
 
+* [**Incubator Temp Controller**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
 
+* [**Humidistat**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/HumidityController/)
