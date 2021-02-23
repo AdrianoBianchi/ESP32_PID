@@ -31,6 +31,7 @@ struct last_values{
     bool PidDirection;
     int SampleTime;
     bool UsePrimaryPID = true;
+    double myOutput=0;
 };
 
 struct failsafe_values{
@@ -40,29 +41,45 @@ struct failsafe_values{
     int OutputValue = 0;
 };
 
-class ESP32PID{
-  public:   
-    ESP32PID(double (*readInputFunction)(), void (*setOutputFunction)(double), struct esp32_pid_settings settings);
-    ESP32PID(double (*readInputFunction)(), void (*setOutputFunction)(double));
-    void setFailsafe(int outputState, int min, int max=10000);
-    void loop();
-  private:
-    // PID Values
-    double PidOutputSum=0, PidOutputP, PidOutputI, PidOutputD, myOutput=0;
+struct output_window_values{
+    bool use = false;
+    unsigned long windowLengthMs;
+    unsigned long cycleStartTime;
+    unsigned long cycleTimeElapsed;
+    unsigned long cycleOnTime = 0;
+};
+
+struct pid_state_values{
+    double PidOutputSum = 0;
+    double PidOutputP = 0;
+    double PidOutputI = 0;
+    double PidOutputD = 0;
     bool UsePrimaryPID = true;
     int ManualOutput = 0;
+};
 
+class ESP32PID{
+  public:   
+    ESP32PID(double (*readInputFunction_)(), void (*setOutputFunction_)(double), struct esp32_pid_settings settings);
+    ESP32PID(double (*readInputFunction_)(), void (*setOutputFunction_)(double));
+    void setFailsafe(int outputState, int min, int max=10000);
+    void useOutputWindow(int windowPeriodSeconds);
+    void loop();
+  private:
     struct failsafe_values failsafe;
     struct esp32_pid_settings _settings;
-
-    // Internal Value Tracking
+    struct output_window_values outputWindow; 
+    struct pid_state_values pidState;
     struct last_values last;
+
+    double myOutput=0;
     bool resetPid = false;
     bool saveSettings = false;
 
-    void (*_setOutputF)(double);
+    void (*setOutputFunction)(double);
     void initialize();
     void syncSettings();
+    double calculateWindowOutput(double output);
 
     // Objects
     Display *oLed;

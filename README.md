@@ -53,12 +53,73 @@ Configure and implement your input and output devices by using the 2 hook functi
 
 ```
 
+
 You can find a working example of a DS18B20 Dallas Temperature Sensor and a Solid State Relay in [examples/DallasTempSensor_and_PWM_SSR/esp32_pid.ino](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/esp32_pid.ino).
 
 
 ### 3. Upload ###
 
 Upload the code to your device and you should be all set!
+
+# Additional Configuration Options #
+
+
+
+
+
+### Failsafe ###
+
+You can set a basic failsafe by specifing the minimum and maximum valid sensor values.  If the sensor value falls outside this range, the output will default the failsafe output state.
+
+```c++
+  myESP32PID = new ESP32PID(readInput, setOutput);
+  int failsafeOutputState = 0; // this should be a value between 0 and 100
+  int min=-100;
+  int max=1000;
+  myESP32PID->setFailsafe(failsafeOutputState, min, max);
+```
+
+### Window Mode (for mechanical relays) ###
+
+If your output is a mechanical relay you can use a method of switching on and off your relay by turning it on for a percentage of a defined window size.  For example with a window size of 100 seconds and an output value of 25%, the relay will be switched on for 25 seconds and then off for 75 seconds.
+
+```c++
+  myESP32PID = new ESP32PID(readInput, setOutput);
+  myESP32PID.useOutputWindow(60); // use a window period of 60 seconds.
+```
+
+
+### Advanced Parameters ###
+
+You can pass a third parameter when creating a new ESP32PID object that takes a struct contining your settings.  
+
+```c++
+
+struct esp32_pid_settings settings;
+
+settings.SetPoint = 100;
+myESP32PID = new ESP32PID(readInput, setOutput, settings);
+
+
+    // Available Settings:
+    //
+    // double SetPoint = 80;
+    // bool PidDirection = DIRECT;
+    // bool OperatingMode = AUTOMATIC;
+    // int SampleTime = 1000;
+    // double Kp=5;
+    // double Ki=0;
+    // double Kd=0;
+    // double Kp2=10;
+    // double Ki2=0;
+    // double Kd2=0;
+    // int pid2Band = 10;
+    // int dataLogDelay = 10000; // 10 seconds - gives about 40 minutes of chart
+    // int SettingAdjustmentMultiple = 1;
+
+
+```
+
 
 
 
