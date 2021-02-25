@@ -1,26 +1,26 @@
 # About #
 
-The goal of this project is to create super simple yet fully-feature [PID controller](https://en.wikipedia.org/wiki/PID_controller) running on the [TTGO ESP32 microcontroller](https://github.com/Xinyuan-LilyGO/TTGO-T-Display).  The implementation is designed to be extremely flexible, allowing a user to quickly and easily get up and running their choice of imput and output sennsors/devices.
+The goal of this project is to create super simple yet fully-feature [PID controller](https://en.wikipedia.org/wiki/PID_controller) running on the [TTGO ESP32 microcontroller](https://github.com/Xinyuan-LilyGO/TTGO-T-Display).  The implementation is designed to be extremely flexible, allowing a user to quickly and easily get up and running their choice of imnut and output sennsors/devices.
 
 ![](https://bitbucket.org/jason955/esp32_pid/raw/master/img/TTGO.jpg)
 
 ### Features ###
-* Settings are fully configurable through GUI
-* Charts showing historical input and output values
-* Persistent settings - saves to EEPROM
-* Dual PIDs - agressive and conservative
-* Manual Override - Output can be set manually in the GUI
-* Windowed Output Mode - For mechanical relays
+* **Interactive GUI** Settings are fully configurable through GUI
+* **Charts** - See historical input and output values
+* **Persistent Settings** - Save settings to EEPROM
+* **Dual PIDs** - Agressive and conservative with configurable operating bands
+* **Manual Override** - Output can be set manually in the GUI
+* **Windowed Output Mode** - For mechanical relays
+* **Advanced PID Info** - View interal PID values - for tuning
 
 
 # Example Projects #
-
-* [**No Sensors**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DummyInputOutputNoSensors/) - Try the project without configuring input and outputs
 
 * [**Incubator Temp Controller**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/) ![](https://bitbucket.org/jason955/esp32_pid/raw/master/examples/DallasTempSensor_and_PWM_SSR/Strip1_600w.jpg)
 
 * [**Humidistat**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/HumidityController/)
 
+* [**No Sensors**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DummyInputOutputNoSensors/) - Try the project without configuring input and outputs
 
 
 # Getting Started #
@@ -30,9 +30,8 @@ You will need to have the [Arduino IDE](https://www.arduino.cc/en/software) inst
 
 
 ### 2. Configure ###
-Download the project to your local machine and use the template located in [esp32_pid/src/esp32_pid/esp32_pid.ino](https://bitbucket.org/jason955/esp32_pid/src/master/src/esp32_pid/esp32_pid.ino).
+Download the project to your local machine and use the template located in [esp32_pid/src/esp32_pid/esp32_pid.ino](https://bitbucket.org/jason955/esp32_pid/src/master/src/esp32_pid/esp32_pid.ino):
 
-All you need to do is add code the readInput and setOutput functions to read from your input sensor (temp, humidity, level, etc) and write to your output (heater, humidifier, pump, etc).
 
 ```c++
     #include "esp32_pid.h"
@@ -65,7 +64,7 @@ All you need to do is add code the readInput and setOutput functions to read fro
 
 ```
 
-See [Additional Configuration Options](#markdown-header-additional-configuration-options) below.
+All you need to do is add code the readInput and setOutput functions to read from your input sensor (temp, humidity, level, etc) and write to your output (heater, humidifier, pump, etc). See [Additional Configuration Options](#markdown-header-additional-configuration-options) below.
 
 
 ### 3. Upload ###
@@ -121,7 +120,7 @@ You can Long Press Button 1 to toggle between screens.  There are 3 screens to t
 2. **PID Status** - Top line shows which PID is currently in use (Normal or Agressive) and the bottom line shows the values that each of P, I and D is contributing to the output.
 3. **Output** - Value the PID is outputing (sum of the items in 2).  This value ranges from 0% - 100%
 4. **Current Input Value**
-5. **Setpoint**
+5. **Setpoint** - The value the PID is trying to achieve.
 6. **PID Gains** - These are the values the PID is using for the Normal PID.
 
 
