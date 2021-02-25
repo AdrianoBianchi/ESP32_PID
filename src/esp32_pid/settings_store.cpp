@@ -2,9 +2,9 @@
 #include "settings_store.h"
 #include <EEPROM.h>
 
-#define ARRAY_SIZE 11
+#define ARRAY_LENGTH 12
 #define STARTING_EEPROM_ADDRESS 10
-#define SAVED_STATUS_ADDRESS 1
+#define EEPROM_VERSION 221
 
 
 void writeIntArrayIntoEEPROM(int address, int numbers[], int arraySize)
@@ -46,11 +46,11 @@ SettingsStore::SettingsStore(double *SetPoint, double *Kp, double *Ki, double *K
 
 }
 
-
 bool SettingsStore::save(){
   // write to variables
   // Serial.println("Saving settings to EEPROM");
-  int numbers[ARRAY_SIZE] = {
+  int numbers[ARRAY_LENGTH] = {
+              EEPROM_VERSION,
               int(*_SetPoint),
               int(*_Kp),
               int(*_Ki*100),
@@ -63,49 +63,56 @@ bool SettingsStore::save(){
               *_pid2Band,
               *_SettingAdjustmentMultiple
    };
-  writeIntArrayIntoEEPROM(STARTING_EEPROM_ADDRESS, numbers, ARRAY_SIZE);
-  EEPROM.write(SAVED_STATUS_ADDRESS, 1);
+  writeIntArrayIntoEEPROM(STARTING_EEPROM_ADDRESS, numbers, ARRAY_LENGTH);
+  // EEPROM.write(SAVED_STATUS_ADDRESS, 1);
   EEPROM.commit();
 }
 
 bool SettingsStore::load(){
-  Serial.println(EEPROM.read(SAVED_STATUS_ADDRESS));
-  if(!EEPROM.read(SAVED_STATUS_ADDRESS)){
-    // Serial.println("No settings in EEPROM, cannot load");
+  
+  int eepromValues[ARRAY_LENGTH];
+  readIntArrayFromEEPROM(STARTING_EEPROM_ADDRESS, eepromValues, ARRAY_LENGTH);
+
+  if(eepromValues[0] != EEPROM_VERSION){
+    // Serial.println("EEPROM version does not match, cannot load");
     return false;
   }
   // Serial.println("Loading settings from EEPROM");
   // retrieve data and save to variables
-  int newNumbers[ARRAY_SIZE];
-  readIntArrayFromEEPROM(STARTING_EEPROM_ADDRESS, newNumbers, ARRAY_SIZE);
+  // Serial.println("------------------");
+  // Serial.println(eepromValues[0]);
+  // Serial.println(eepromValues[1]);
+  // Serial.println(eepromValues[2]);
+  // Serial.println(eepromValues[3]);
+  // Serial.println(eepromValues[4]);
+  // Serial.println(eepromValues[5]);
+  // Serial.println(eepromValues[6]);
+  // Serial.println(eepromValues[7]);
+  // Serial.println(eepromValues[8]);
+  // Serial.println(eepromValues[9]);
+  // Serial.println(eepromValues[10]);
+  // Serial.println(eepromValues[11]);
+  // Serial.println("------------------");
 
-
-  // Serial.println(newNumbers[0]);
-  // Serial.println(newNumbers[1]);
-  // Serial.println(newNumbers[2]);
-  // Serial.println(newNumbers[3]);
-  // Serial.println(newNumbers[4]);
-  // Serial.println(newNumbers[5]);
-  // Serial.println(newNumbers[6]);
-  // Serial.println(newNumbers[7]);
-  // Serial.println(newNumbers[8]);
-  // Serial.println(newNumbers[9]);
-  // Serial.println(newNumbers[10]);
-
-  *_SetPoint =                  newNumbers[0];
-  *_Kp =                        newNumbers[1];
-  *_Ki =                        newNumbers[2]/100.0;
-  *_Kd =                        newNumbers[3];
-  *_Kp2 =                       newNumbers[4];
-  *_Ki2 =                       newNumbers[5]/100.0;
-  *_Kd2 =                       newNumbers[6];
-  *_PidDirection =              bool(newNumbers[7]);
-  *_SampleTime =                newNumbers[8];
-  *_pid2Band =                  newNumbers[9];
-  *_SettingAdjustmentMultiple = newNumbers[10];
+  *_SetPoint =                  eepromValues[1];
+  *_Kp =                        eepromValues[2];
+  *_Ki =                        eepromValues[3]/100.0;
+  *_Kd =                        eepromValues[4];
+  *_Kp2 =                       eepromValues[5];
+  *_Ki2 =                       eepromValues[6]/100.0;
+  *_Kd2 =                       eepromValues[7];
+  *_PidDirection =              bool(eepromValues[8]);
+  *_SampleTime =                eepromValues[9];
+  *_pid2Band =                  eepromValues[10];
+  *_SettingAdjustmentMultiple = eepromValues[11];
   return true;
 
 
 }
 
+void SettingsStore::reset(){
+  int numbers[ARRAY_LENGTH];
+  writeIntArrayIntoEEPROM(STARTING_EEPROM_ADDRESS, numbers, ARRAY_LENGTH);
+  Serial.println("EEPROM settings cleared");
+}
 

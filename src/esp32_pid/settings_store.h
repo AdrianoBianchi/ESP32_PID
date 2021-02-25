@@ -9,6 +9,7 @@ class SettingsStore{
     SettingsStore(double *SetPoint, double *Kp, double *Ki, double *Kd, double *Kp2, double *Ki2, double *Kd2, bool *PidDirection, int *SampleTime, int *pid2Band, int *SettingAdjustmentMultiple);
     bool save();
     bool load();
+    void reset();
   private:
   	double *_SetPoint;
 	double *_Kp;
