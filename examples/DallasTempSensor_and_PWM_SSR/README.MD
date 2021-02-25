@@ -3,7 +3,7 @@
 
 
 
-# Incubator Heater Controller #
+# Heater Controller (for an incubator)#
 
 This is a PID heater controller that uses a Dallas Temp Sensor DS18B20 to read the air temperature and a Solid State Relay to control the output of a heater (in this case a 100w lightbulb) using [PWM](https://en.wikipedia.org/wiki/Pulse-width_modulation).  The housing was 3d printed (STL and 3d Fusion files can be found here).
 

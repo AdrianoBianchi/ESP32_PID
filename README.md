@@ -15,9 +15,9 @@ The goal of this project is to create super simple yet fully-feature [PID contro
 
 # Example Projects #
 
-* [**Dummy Sensors**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DummyInputOutputNoSensors/) - Try the project without configuring input and outputs
+* [**No Sensors**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DummyInputOutputNoSensors/) - Try the project without configuring input and outputs
 
-* [**Incubator Temp Controller**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/)
+* [**Incubator Temp Controller**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/DallasTempSensor_and_PWM_SSR/) ![](https://bitbucket.org/jason955/esp32_pid/raw/master/examples/DallasTempSensor_and_PWM_SSR/Strip1_600w.jpg)
 
 * [**Humidistat**](https://bitbucket.org/jason955/esp32_pid/src/master/examples/HumidityController/)
 
