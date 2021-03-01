@@ -6,6 +6,7 @@ The goal of this project is to create super simple yet fully-feature [PID contro
 
 ### Features ###
 * **Interactive GUI** Settings are fully configurable through GUI
+* **Webserver** - Remote access over Wifi
 * **Charts** - See historical input and output values
 * **Persistent Settings** - Save settings to EEPROM
 * **Dual PIDs** - Agressive and conservative with configurable operating bands
@@ -150,6 +151,37 @@ You can Long Press Button 1 to toggle between screens.  There are 3 screens to t
 
 
 # Additional Configuration Options #
+
+
+### Web Server ###
+
+You can implement basic failsafe functionality by specifing the minimum and maximum valid sensor values and a default output value.  If the sensor value falls outside this range, the output will default the failsafe output state.  This can prevent an overheating in a heating PID in the event a sensor is disconnected.
+
+```c++
+  // Load Wi-Fi library
+  #include <WiFi.h>
+  // Replace with your network credentials
+  const char* ssid = "mywifi";
+  const char* password = "mypasswd";
+
+
+  // in the setup
+  myESP32PID = new ESP32PID(readInput, setOutput);
+  myESP32PID->enableWebServer();
+  WiFi.begin(ssid, password);
+
+  // wait for wifi connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  // Print local IP address and start web server
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+```
 
 ### Failsafe ###
 

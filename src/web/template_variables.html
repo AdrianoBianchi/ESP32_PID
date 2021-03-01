@@ -1,0 +1,35 @@
+
+{
+  "Input" : {{ *s._Input }},
+  "Settings" : {
+    "SetPoint" : {{ s._settings->SetPoint }},
+    "PidDirection" : {{ s._settings->PidDirection }},
+    "OperatingMode" : {{ s._settings->OperatingMode }},
+    "SampleTime" : {{ s._settings->SampleTime }},
+    "Kp" : {{ s._settings->Kp }},
+    "Ki" : {{ s._settings->Ki }},
+    "Kd" : {{ s._settings->Kd }},
+    "Kp2" : {{ s._settings->Kp2 }},
+    "Ki2" : {{ s._settings->Ki2 }},
+    "Kd2" : {{ s._settings->Kd2 }},
+    "pid2Band" : {{ s._settings->pid2Band }},
+    "dataLogDelay" : {{ s._settings->dataLogDelay }},
+    "SettingAdjustmentMultiple" : {{ s._settings->SettingAdjustmentMultiple }}
+  },
+  "pidState" : {
+    "PidOutputSum" : {{ s._pidState->PidOutputSum }},
+    "PidOutputP" : {{ s._pidState->PidOutputP }},
+    "PidOutputI" : {{ s._pidState->PidOutputI }},
+    "PidOutputD" : {{ s._pidState->PidOutputD }},
+    "UsePrimaryPID" : {{ s._pidState->UsePrimaryPID }},
+    "ManualOutput" : {{ s._pidState->ManualOutput }}
+  }
+}
+
+
+
+
+
+
+
+ 
