@@ -15,15 +15,21 @@
       padding-top: 5rem;
       }
     .starter-template {
-      padding: 3rem 1.5rem;
+      
       }
     .text-center {text-align: center;}
     .gauge-chart{
       width:100%;
     }
-    #pid-internal-values{
+    .gauge-label{
+      margin-top: -35px;
+      font-size: 20px;
+      font-weight: bolder;
+    }
+    .gauge-subtext{
       margin-top: -20px;
       color: #9f9f9f;
+      text-align: center;
     }
   </style>
 
@@ -50,34 +56,35 @@
 
 
         <div class="row">
-          <div class="col-md-6">
-            <h1 class="text-center">Current/Setpoint </h1>
+          <div class="col-6">
+            <h1 class="text-center">Input</h1>
           </div>
-          <div class="col-md-6">
+          <div class="col-6">
             <h1 class="text-center">Output</h1>
           </div>
         </div>
 
 
         <div class="row">
-          <div class="col-md-1">
+          <div class="col-1">
           </div>
 
-          <div class="col-md-4">
+          <div class="col-4">
             <canvas id="setpoint-gauge-chart" class="gauge-chart"></canvas>
-            <p class="text-center"><span id="input"></span> / <span id="setpoint"></span></p>
+            <p class="text-center gauge-label"><span id="input"></span></p>
+            <p class="gauge-subtext">Setpoint <span id="setpoint"></span></p>
           </div>
 
-          <div class="col-md-2">
+          <div class="col-2">
           </div>
 
-          <div class="col-md-4">
+          <div class="col-4">
             <canvas id="output-gauge-chart" class="gauge-chart"></canvas>
-            <p class="text-center"><span id="output"></span><span id="outputMode"></span></p>
-            <p id="pid-internal-values" class="text-center">(<span id="PidOutputP"></span>/<span id="PidOutputI"></span>/<span id="PidOutputD"></span>) <span id="pid-in-use"></span></p>
+            <p class="text-center gauge-label"><span id="output"></span>%<span id="outputMode"></span></p>
+            <p id="pid-internal-values" class="gauge-subtext">(<span id="PidOutputP"></span>/<span id="PidOutputI"></span>/<span id="PidOutputD"></span>) <span id="pid-in-use"></span></p>
           </div>
 
-          <div class="col-md-1">
+          <div class="col-1">
             
           </div>    
         </div>
@@ -96,15 +103,15 @@
           <h3>Pid 1</h3>
           <div class="form-row">
             
-            <div class="form-group col-md-4">
+            <div class="form-group col-4">
               <label for="Kp">Kp</label>
               <input type="text" class="form-control" id="Kp">
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-4">
               <label for="Ki">Ki</label>
               <input type="text" class="form-control" id="Ki">
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-4">
               <label for="Kd">Kd</label>
               <input type="text" class="form-control" id="Kd">
             </div>
@@ -112,21 +119,21 @@
           <h3>Pid 2</h3>
           <div class="form-row">
             
-            <div class="form-group col-md-4">
+            <div class="form-group col-4">
               <label for="Kp2">Kp</label>
               <input type="text" class="form-control" id="Kp2">
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-4">
               <label for="Ki2">Ki</label>
               <input type="text" class="form-control" id="Ki2">
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col-4">
               <label for="Kd2">Kd</label>
               <input type="text" class="form-control" id="Kd2">
             </div>
           </div>
           <div class="form-row">
-            <div class="form-group col-md-4">
+            <div class="form-group col-4">
               <label for="pid2Band">Band</label>
               <input type="text" class="form-control" id="pid2Band">
             </div>
@@ -195,17 +202,17 @@
           var items = [];
           console.log(data);
          
-          $("#input").text(data.Input);
-          $("#setpoint").text(data.Settings.SetPoint);
+          $("#input").text(data.In);
+          $("#setpoint").text(data.SP);
           // $("#PidDirection").text(data.Settings.PidDirection);
-          if(data.Settings.OperatingMode){
-            updateGauges(data.Settings.SetPoint,data.Input,data.pidState.PidOutputSum);
+          if(data.Md){
+            updateGauges(data.SP,data.In,data.O);
             $("#outputMode").text("");
-            $("#output").text(data.pidState.PidOutputSum);
-            $("#PidOutputP").text(data.pidState.PidOutputP);
-            $("#PidOutputI").text(data.pidState.PidOutputI);
-            $("#PidOutputD").text(data.pidState.PidOutputD);
-            if(data.pidState.UsePrimaryPID){
+            $("#output").text(data.O);
+            $("#PidOutputP").text(data.P);
+            $("#PidOutputI").text(data.I);
+            $("#PidOutputD").text(data.D);
+            if(data.Pr){
               $("#pid-in-use").text("Normal");
             }
             else{
@@ -218,8 +225,8 @@
             $("#outputMode").text(" (Manual)");
             $("#pid-status").hide();
             $("#pid-internal-values").hide();
-            $("#output").text(data.pidState.ManualOutput);
-            updateGauges(data.Settings.SetPoint,data.Input,data.pidState.ManualOutput);
+            $("#output").text(data.Mn);
+            updateGauges(data.SP,data.In,data.Mn);
           }
           
           

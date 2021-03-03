@@ -10,6 +10,7 @@ WiFiServer myserver(80);
 
 
 void route_home(WebServer& s){
+
   s.client.println("<!doctype html>");
   s.client.println("<html lang=\"en\">");
   s.client.println("<head>");
@@ -25,15 +26,20 @@ void route_home(WebServer& s){
   s.client.println("padding-top: 5rem;");
   s.client.println("}");
   s.client.println(".starter-template {");
-  s.client.println("padding: 3rem 1.5rem;");
   s.client.println("}");
   s.client.println(".text-center {text-align: center;}");
   s.client.println(".gauge-chart{");
   s.client.println("width:100%;");
   s.client.println("}");
-  s.client.println("#pid-internal-values{");
+  s.client.println(".gauge-label{");
+  s.client.println("margin-top: -35px;");
+  s.client.println("font-size: 20px;");
+  s.client.println("font-weight: bolder;");
+  s.client.println("}");
+  s.client.println(".gauge-subtext{");
   s.client.println("margin-top: -20px;");
   s.client.println("color: #9f9f9f;");
+  s.client.println("text-align: center;");
   s.client.println("}");
   s.client.println("</style>");
   s.client.println("<nav class=\"navbar navbar-expand-md navbar-dark bg-dark fixed-top\">");
@@ -52,28 +58,29 @@ void route_home(WebServer& s){
   s.client.println("<main role=\"main\" class=\"container\">");
   s.client.println("<div class=\"starter-template\">");
   s.client.println("<div class=\"row\">");
-  s.client.println("<div class=\"col-md-6\">");
-  s.client.println("<h1 class=\"text-center\">Current/Setpoint </h1>");
+  s.client.println("<div class=\"col-6\">");
+  s.client.println("<h1 class=\"text-center\">Input</h1>");
   s.client.println("</div>");
-  s.client.println("<div class=\"col-md-6\">");
+  s.client.println("<div class=\"col-6\">");
   s.client.println("<h1 class=\"text-center\">Output</h1>");
   s.client.println("</div>");
   s.client.println("</div>");
   s.client.println("<div class=\"row\">");
-  s.client.println("<div class=\"col-md-1\">");
+  s.client.println("<div class=\"col-1\">");
   s.client.println("</div>");
-  s.client.println("<div class=\"col-md-4\">");
+  s.client.println("<div class=\"col-4\">");
   s.client.println("<canvas id=\"setpoint-gauge-chart\" class=\"gauge-chart\"></canvas>");
-  s.client.println("<p class=\"text-center\"><span id=\"input\"></span> / <span id=\"setpoint\"></span></p>");
+  s.client.println("<p class=\"text-center gauge-label\"><span id=\"input\"></span></p>");
+  s.client.println("<p class=\"gauge-subtext\">Setpoint <span id=\"setpoint\"></span></p>");
   s.client.println("</div>");
-  s.client.println("<div class=\"col-md-2\">");
+  s.client.println("<div class=\"col-2\">");
   s.client.println("</div>");
-  s.client.println("<div class=\"col-md-4\">");
+  s.client.println("<div class=\"col-4\">");
   s.client.println("<canvas id=\"output-gauge-chart\" class=\"gauge-chart\"></canvas>");
-  s.client.println("<p class=\"text-center\"><span id=\"output\"></span><span id=\"outputMode\"></span></p>");
-  s.client.println("<p id=\"pid-internal-values\" class=\"text-center\">(<span id=\"PidOutputP\"></span>/<span id=\"PidOutputI\"></span>/<span id=\"PidOutputD\"></span>) <span id=\"pid-in-use\"></span></p>");
+  s.client.println("<p class=\"text-center gauge-label\"><span id=\"output\"></span>%<span id=\"outputMode\"></span></p>");
+  s.client.println("<p id=\"pid-internal-values\" class=\"gauge-subtext\">(<span id=\"PidOutputP\"></span>/<span id=\"PidOutputI\"></span>/<span id=\"PidOutputD\"></span>) <span id=\"pid-in-use\"></span></p>");
   s.client.println("</div>");
-  s.client.println("<div class=\"col-md-1\">");
+  s.client.println("<div class=\"col-1\">");
   s.client.println("</div>");
   s.client.println("</div>");
   s.client.println("<canvas id=\"myChart\"></canvas>");
@@ -82,36 +89,36 @@ void route_home(WebServer& s){
   s.client.println("<form>");
   s.client.println("<h3>Pid 1</h3>");
   s.client.println("<div class=\"form-row\">");
-  s.client.println("<div class=\"form-group col-md-4\">");
+  s.client.println("<div class=\"form-group col-4\">");
   s.client.println("<label for=\"Kp\">Kp</label>");
   s.client.println("<input type=\"text\" class=\"form-control\" id=\"Kp\">");
   s.client.println("</div>");
-  s.client.println("<div class=\"form-group col-md-4\">");
+  s.client.println("<div class=\"form-group col-4\">");
   s.client.println("<label for=\"Ki\">Ki</label>");
   s.client.println("<input type=\"text\" class=\"form-control\" id=\"Ki\">");
   s.client.println("</div>");
-  s.client.println("<div class=\"form-group col-md-4\">");
+  s.client.println("<div class=\"form-group col-4\">");
   s.client.println("<label for=\"Kd\">Kd</label>");
   s.client.println("<input type=\"text\" class=\"form-control\" id=\"Kd\">");
   s.client.println("</div>");
   s.client.println("</div>");
   s.client.println("<h3>Pid 2</h3>");
   s.client.println("<div class=\"form-row\">");
-  s.client.println("<div class=\"form-group col-md-4\">");
+  s.client.println("<div class=\"form-group col-4\">");
   s.client.println("<label for=\"Kp2\">Kp</label>");
   s.client.println("<input type=\"text\" class=\"form-control\" id=\"Kp2\">");
   s.client.println("</div>");
-  s.client.println("<div class=\"form-group col-md-4\">");
+  s.client.println("<div class=\"form-group col-4\">");
   s.client.println("<label for=\"Ki2\">Ki</label>");
   s.client.println("<input type=\"text\" class=\"form-control\" id=\"Ki2\">");
   s.client.println("</div>");
-  s.client.println("<div class=\"form-group col-md-4\">");
+  s.client.println("<div class=\"form-group col-4\">");
   s.client.println("<label for=\"Kd2\">Kd</label>");
   s.client.println("<input type=\"text\" class=\"form-control\" id=\"Kd2\">");
   s.client.println("</div>");
   s.client.println("</div>");
   s.client.println("<div class=\"form-row\">");
-  s.client.println("<div class=\"form-group col-md-4\">");
+  s.client.println("<div class=\"form-group col-4\">");
   s.client.println("<label for=\"pid2Band\">Band</label>");
   s.client.println("<input type=\"text\" class=\"form-control\" id=\"pid2Band\">");
   s.client.println("</div>");
@@ -160,17 +167,17 @@ void route_home(WebServer& s){
   s.client.println("$.getJSON( API_URL + \"/variables\", function( data ) {");
   s.client.println("var items = [];");
   s.client.println("console.log(data);");
-  s.client.println("$(\"#input\").text(data.Input);");
-  s.client.println("$(\"#setpoint\").text(data.Settings.SetPoint);");
+  s.client.println("$(\"#input\").text(data.In);");
+  s.client.println("$(\"#setpoint\").text(data.SP);");
   s.client.println("// $(\"#PidDirection\").text(data.Settings.PidDirection);");
-  s.client.println("if(data.Settings.OperatingMode){");
-  s.client.println("updateGauges(data.Settings.SetPoint,data.Input,data.pidState.PidOutputSum);");
+  s.client.println("if(data.Md){");
+  s.client.println("updateGauges(data.SP,data.In,data.O);");
   s.client.println("$(\"#outputMode\").text(\"\");");
-  s.client.println("$(\"#output\").text(data.pidState.PidOutputSum);");
-  s.client.println("$(\"#PidOutputP\").text(data.pidState.PidOutputP);");
-  s.client.println("$(\"#PidOutputI\").text(data.pidState.PidOutputI);");
-  s.client.println("$(\"#PidOutputD\").text(data.pidState.PidOutputD);");
-  s.client.println("if(data.pidState.UsePrimaryPID){");
+  s.client.println("$(\"#output\").text(data.O);");
+  s.client.println("$(\"#PidOutputP\").text(data.P);");
+  s.client.println("$(\"#PidOutputI\").text(data.I);");
+  s.client.println("$(\"#PidOutputD\").text(data.D);");
+  s.client.println("if(data.Pr){");
   s.client.println("$(\"#pid-in-use\").text(\"Normal\");");
   s.client.println("}");
   s.client.println("else{");
@@ -183,8 +190,8 @@ void route_home(WebServer& s){
   s.client.println("$(\"#outputMode\").text(\" (Manual)\");");
   s.client.println("$(\"#pid-status\").hide();");
   s.client.println("$(\"#pid-internal-values\").hide();");
-  s.client.println("$(\"#output\").text(data.pidState.ManualOutput);");
-  s.client.println("updateGauges(data.Settings.SetPoint,data.Input,data.pidState.ManualOutput);");
+  s.client.println("$(\"#output\").text(data.Mn);");
+  s.client.println("updateGauges(data.SP,data.In,data.Mn);");
   s.client.println("}");
   s.client.println("// $(\"#Kp\").val(data.Settings.Kp);");
   s.client.println("// $(\"#Ki\").val(data.Settings.Ki);");
@@ -206,7 +213,7 @@ void route_home(WebServer& s){
   s.client.println("var opts = {");
   s.client.println("angle: -0.2, // The span of the gauge arc");
   s.client.println("lineWidth: 0.2, // The line thickness");
-  s.client.println("radiusScale: 1, // Relative radius");
+  s.client.println("radiusScale: 0.85, // Relative radius");
   s.client.println("pointer: {");
   s.client.println("length: 0.6, // // Relative to gauge radius");
   s.client.println("strokeWidth: 0.042, // The thickness");
@@ -242,7 +249,7 @@ void route_home(WebServer& s){
   s.client.println("var opts = {");
   s.client.println("angle: -0.2, // The span of the gauge arc");
   s.client.println("lineWidth: 0.2, // The line thickness");
-  s.client.println("radiusScale: 1, // Relative radius");
+  s.client.println("radiusScale: 0.85, // Relative radius");
   s.client.println("pointer: {");
   s.client.println("length: 0.6, // // Relative to gauge radius");
   s.client.println("strokeWidth: 0.042, // The thickness");
@@ -353,6 +360,8 @@ void route_home(WebServer& s){
   s.client.println("</body>");
   s.client.println("</html>");
 
+
+
 }
 
 
@@ -421,34 +430,17 @@ void route_test(WebServer& s){
 }
 
 void variables_get(WebServer& s){
-  s.client.println("");
-  s.client.println("{");
-  s.client.println("\"Input\" : " + String(*s._Input) + ",");
-  s.client.println("\"Settings\" : {");
-  s.client.println("\"SetPoint\" : " + String(s._settings->SetPoint) + ",");
-  s.client.println("\"PidDirection\" : " + String(s._settings->PidDirection) + ",");
-  s.client.println("\"OperatingMode\" : " + String(s._settings->OperatingMode) + ",");
-  s.client.println("\"SampleTime\" : " + String(s._settings->SampleTime) + ",");
-  s.client.println("\"Kp\" : " + String(s._settings->Kp) + ",");
-  s.client.println("\"Ki\" : " + String(s._settings->Ki) + ",");
-  s.client.println("\"Kd\" : " + String(s._settings->Kd) + ",");
-  s.client.println("\"Kp2\" : " + String(s._settings->Kp2) + ",");
-  s.client.println("\"Ki2\" : " + String(s._settings->Ki2) + ",");
-  s.client.println("\"Kd2\" : " + String(s._settings->Kd2) + ",");
-  s.client.println("\"pid2Band\" : " + String(s._settings->pid2Band) + ",");
-  s.client.println("\"dataLogDelay\" : " + String(s._settings->dataLogDelay) + ",");
-  s.client.println("\"SettingAdjustmentMultiple\" : " + String(s._settings->SettingAdjustmentMultiple) + "");
-  s.client.println("},");
-  s.client.println("\"pidState\" : {");
-  s.client.println("\"PidOutputSum\" : " + String(s._pidState->PidOutputSum) + ",");
-  s.client.println("\"PidOutputP\" : " + String(s._pidState->PidOutputP) + ",");
-  s.client.println("\"PidOutputI\" : " + String(s._pidState->PidOutputI) + ",");
-  s.client.println("\"PidOutputD\" : " + String(s._pidState->PidOutputD) + ",");
-  s.client.println("\"UsePrimaryPID\" : " + String(s._pidState->UsePrimaryPID) + ",");
-  s.client.println("\"ManualOutput\" : " + String(s._pidState->ManualOutput) + "");
-  s.client.println("}");
-  s.client.println("}");
-  s.client.println("");
+  s.client.println( "{\"In\" : " + String(*s._Input) +
+                     ",\"SP\" : " + String(s._settings->SetPoint) +
+                     ",\"D\" : " + String(s._settings->PidDirection) +
+                     ",\"Md\" : " + String(s._settings->OperatingMode) +
+                     ",\"O\" : " + String(s._pidState->PidOutputSum) +
+                     ",\"P\" : " + String(s._pidState->PidOutputP) +
+                     ",\"I\" : " + String(s._pidState->PidOutputI) +
+                     ",\"D\" : " + String(s._pidState->PidOutputD) +
+                     ",\"Pr\" : " + String(s._pidState->UsePrimaryPID) +
+                     ",\"Mn\" : " + String(s._pidState->ManualOutput) +
+                    "}");
 
 
 
@@ -504,8 +496,8 @@ void WebServer::parseRoute(){
   for(int i=0; i<ROUTES_LEN; i++){
     if(header.indexOf(myRoutes[i].requestType + " " + myRoutes[i].route) == 0 ){
 
-      Serial.println('Found Matching Route');
-      Serial.println(myRoutes[i].requestType + " " + myRoutes[i].route);
+
+      Serial.println("Found Matching Route: " + myRoutes[i].requestType + " " + myRoutes[i].route);
       sendResponseHeaders();
       (*myRoutes[i].handler)(*this);
       return;
@@ -532,13 +524,14 @@ void WebServer::processRequests(){
   }
   wifiLastOnline = true;
 
-
+  clientListenStartTime = millis();
   client = myserver.available();   // Listen for incoming clients
 
   if (client) {
     currentTime = millis();
+    requestStartTime = currentTime;
     previousTime = currentTime;
-    Serial.println("New Client.");
+    // Serial.println("New Client.");
 
 
 
@@ -547,14 +540,19 @@ void WebServer::processRequests(){
       currentTime = millis();
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
-        Serial.write(c);                    // print it out the serial monitor
+        //  Serial.write(c);                    // print it out the serial monitor
         header += c;
         if (c == '\n') {                    // if the byte is a newline character
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() == 0) {
+            responseStartTime = millis();
             parseRoute();
             client.println();
+            Serial.println("Total Time: " + String(millis()-clientListenStartTime) + "ms (" + 
+                                            String(requestStartTime-clientListenStartTime) + ", " + 
+                                            String(responseStartTime-requestStartTime) + ", " + 
+                                            String(millis() - responseStartTime) + ")");
             break;
           } else { // if you got a newline, then clear currentLine
             currentLine = "";

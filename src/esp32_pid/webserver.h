@@ -33,8 +33,11 @@ class WebServer{
     void sendResponseHeaders();
     void send404();
     void parseRoute();
-    int currentTime;
-    int previousTime;
+    unsigned long clientListenStartTime;
+    unsigned long requestStartTime;
+    unsigned long responseStartTime;
+    unsigned long currentTime;
+    unsigned long previousTime;
     int timeoutTime = 1000;
     String header;
     bool serverStarted = false;
