@@ -8,6 +8,7 @@
 #include "display.h"
 #include "webserver.h"
 #include "datatypes.h"
+#include "input_.h"
 
 
 class ESP32PID{
@@ -20,7 +21,6 @@ class ESP32PID{
     void enableWebServer();
     void useRedundantInput(double (*readInputFunction_)(), int maxDifference, bool useAverage=false, int outputState=0);
   private:
-    struct failsafe_values failsafe;
     struct esp32_pid_settings _settings;
     struct output_window_values outputWindow; 
     struct pid_state_values pidState;
@@ -31,12 +31,10 @@ class ESP32PID{
     bool saveSettings = false;
     bool webServerEnabled = false;
 
-    bool redundantSensorUseAverage = false;
-    int redundantSensorMaxDifference;
-    int redundantSensorErrorOutput;
+    int errorOutputValue = 0;
 
     void (*setOutputFunction)(double);
-    void initialize();
+    void initialize(double (*readInputFunction_)(), void (*setOutputFunction_)(double));
     void syncSettings();
     double calculateWindowOutput(double output);
 
@@ -49,6 +47,7 @@ class ESP32PID{
     DataLogger *outputLog;
     SettingsStore *mySettings;
     WebServer *myWebServer;
+
 };
 
 #endif

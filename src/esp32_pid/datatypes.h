@@ -28,12 +28,6 @@ struct last_values{
     double myOutput=0;
 };
 
-struct failsafe_values{
-    bool Enabled = false;
-    int MinInput = -10000;
-    int MaxInput = 10000;
-    int OutputValue = 0;
-};
 
 struct output_window_values{
     bool use = false;
