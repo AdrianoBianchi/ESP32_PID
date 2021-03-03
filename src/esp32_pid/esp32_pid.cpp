@@ -3,18 +3,24 @@
 
 
 double Input = 0;
+double InputA = 0;
+double InputB = 0;
+bool USE_REDUNDANT_SENSOR = false;
 double (*readInputFunction)();
+double (*readRedundantInputFunction)();
 TaskHandle_t Core2Task;
 
 
 void core2Loop( void * pvParameters ){
   for(;;) {
-    Input = (*readInputFunction)();
+    InputA = (*readInputFunction)();
+    if(USE_REDUNDANT_SENSOR){
+      InputB = (*readRedundantInputFunction)();
+    }
     vTaskDelay( pdMS_TO_TICKS( 10 ) );
   }
   vTaskDelete( NULL );
 }
-
 
 
 ESP32PID::ESP32PID(double (*readInputF)(), void (*setOutputF)(double), struct esp32_pid_settings settings)
@@ -38,6 +44,17 @@ void ESP32PID::useOutputWindow(int windowLength){
   outputWindow.cycleStartTime = millis();
 
 }
+
+void ESP32PID::useRedundantInput(double (*readInputFunction_)(), int maxDifference, bool useAverage, int outputState){
+  
+  readRedundantInputFunction = readInputFunction_;
+  redundantSensorMaxDifference = maxDifference;
+  redundantSensorErrorOutput = outputState;
+  redundantSensorUseAverage = useAverage;
+  USE_REDUNDANT_SENSOR = true;
+
+}
+
 
 void ESP32PID::initialize(){
   last.Kp = _settings.Kp;
@@ -70,7 +87,31 @@ void ESP32PID::loop()
 {
   syncSettings();
   float output;
-  if( failsafe.Enabled && _settings.OperatingMode == AUTOMATIC &&
+
+
+  // Redundancy check
+  bool redundantSensorError = false;
+  if(USE_REDUNDANT_SENSOR){
+    if(abs(InputA-InputB)>redundantSensorMaxDifference){
+      redundantSensorError = true;
+    }
+    if(redundantSensorUseAverage){
+      Input = (InputA+InputB)/2.0;
+    }
+    else{
+      Input = InputA;
+    }
+  }
+  else{
+    Input = InputA;
+  }
+
+  
+  if(redundantSensorError && _settings.OperatingMode == AUTOMATIC){
+    output = redundantSensorErrorOutput;
+    Serial.println("Sensor error.  Primary and redundant sensors not in agreement " + String(InputA) + " " + String(InputB) );
+  }
+  else if( failsafe.Enabled && _settings.OperatingMode == AUTOMATIC &&
       (Input <= failsafe.MinInput || Input >= failsafe.MaxInput) ){
     // BAD READING FROM INPUT SENSOR - DISABLE OUTPUT
     output = failsafe.OutputValue;

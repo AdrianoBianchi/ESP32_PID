@@ -11,13 +11,14 @@
 
 
 class ESP32PID{
-  public:   
+  public:
     ESP32PID(double (*readInputFunction_)(), void (*setOutputFunction_)(double), struct esp32_pid_settings settings);
     ESP32PID(double (*readInputFunction_)(), void (*setOutputFunction_)(double));
     void setFailsafe(int outputState, int min, int max=10000);
     void useOutputWindow(int windowPeriodSeconds);
     void loop();
     void enableWebServer();
+    void useRedundantInput(double (*readInputFunction_)(), int maxDifference, bool useAverage=false, int outputState=0);
   private:
     struct failsafe_values failsafe;
     struct esp32_pid_settings _settings;
@@ -29,6 +30,10 @@ class ESP32PID{
     bool resetPid = false;
     bool saveSettings = false;
     bool webServerEnabled = false;
+
+    bool redundantSensorUseAverage = false;
+    int redundantSensorMaxDifference;
+    int redundantSensorErrorOutput;
 
     void (*setOutputFunction)(double);
     void initialize();

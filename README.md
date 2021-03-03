@@ -8,6 +8,8 @@ The goal of this project is to create super simple yet fully-feature [PID contro
 * **Interactive GUI** Settings are fully configurable through GUI
 * **Webserver** - Remote access over Wifi
 * **Charts** - See historical input and output values
+* **Failsafe** - Set default state on bad input
+* **Redundant input** - Use a second sensor to ensure valid input readings
 * **Persistent Settings** - Save settings to EEPROM
 * **Dual PIDs** - Agressive and conservative with configurable operating bands
 * **Manual Override** - Output can be set manually in the GUI
@@ -193,6 +195,38 @@ You can implement basic failsafe functionality by specifing the minimum and maxi
   int min=-100; // if input sensor reads below -100 the output will be set to the failsafeOutputState of 0
   int max=1000; // if input sensor reads above 1000, set output to 0
   myESP32PID->setFailsafe(failsafeOutputState, min, max);
+```
+
+### Redundant Sensor ###
+
+You can use a redundant input sensor to ensure the sensor is reading correctly.  You can spedifiy if the primary sensor value or the average of the two sensor values sould be used as input to the controller.
+
+```c++
+  myESP32PID = new ESP32PID(readInput, setOutput);
+  double readInputRedundant(){
+    // Redundant sensor should return its value
+    return mySensor.getTemp();
+  }
+  int maxSensorDifference = 5; // If the sensors are this far apart there's an error
+
+
+  // Defaults to using primary sensor as input and 0 as the default output on error
+  myESP32PID->useRedundantInput(readInputRedundant, maxSensorDifference);
+
+
+  // You can provide a third parameter to use the average of the two sensors, vs the primary
+  bool useAverage = true;
+  myESP32PID->useRedundantInput(readInputRedundant, maxSensorDifference, useAverage);
+
+
+  // A fourth parameter specifies the output (default 0) in the event of a sensor disagreement
+  int defaultOutput = 100;
+  myESP32PID->useRedundantInput(readInputRedundant, maxSensorDifference, useAverage, defaultOutput);
+
+
+
+
+  
 ```
 
 ### Windowed Mode ###
