@@ -12,6 +12,8 @@ Input_::Input_(double (*readInputFunction_)())
 input_state Input_::read()
 {
   input_state myState;
+  myState.useRedundantSensor = redundantInputEnabled;
+  myState.useAverage = redundantUseAverage;
   double InputA = (*readInputA)();
 
 
@@ -27,6 +29,8 @@ input_state Input_::read()
       myState.error = 0;
     }
     if(redundantUseAverage){
+      myState.input1 = InputA;
+      myState.input2 = InputB;
       myState.value = (InputA+InputB)/2.0;
     }
     else{

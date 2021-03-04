@@ -57,7 +57,7 @@ double getArrayMax(double a[], int length){
 
 TFT_eSPI tft = TFT_eSPI();
 
-Display::Display(int update_ms, double *Input, double *SetPoint, double *Output, 
+Display::Display(int update_ms, input_state *inputState_, double *SetPoint, double *Output, 
             double *Kp, double *Ki, double *Kd, 
             double *Kp2, double *Ki2, double *Kd2, int *pid2Band,
             bool *OperatingMode, int *SampleTime, bool *PidDirection,
@@ -66,7 +66,7 @@ Display::Display(int update_ms, double *Input, double *SetPoint, double *Output,
             DataLogger *input, DataLogger *setpointLog, DataLogger *OutputLog)
 {
   _selected_menu_item = 0; 
-  _Input = Input;
+  inputState = inputState_;
   _SetPoint = SetPoint;
   _Output = Output;
   _Kp = Kp;
@@ -348,7 +348,13 @@ void Display::_draw_text(String text, int x, int y, int textSize = 2, int textCo
 
 void Display::draw_setpoint_section(){
   _draw_text("Set ",0, lineSpace*1);
-  _draw_text( String(*_Input) + " ", 80, lineSpace*1); 
+  if(inputState->error){ _draw_text( "ERROR ", 80, lineSpace*1); }
+  else{ _draw_text( String(inputState->value) + " ", 80, lineSpace*1); }
+
+  if(inputState->useRedundantSensor){
+    _draw_text( _rightPadString(String(int(round(inputState->input1))),4," "), 50, lineSpace*1, 1); 
+    _draw_text( _rightPadString(String(int(round(inputState->input2))),4," "), 50, lineSpace + 8, 1); 
+  }
   if(*_OperatingMode == AUTOMATIC){
     _draw_text( String("/"), 170, lineSpace*1);
     _draw_menu_item(String(int(*_SetPoint))+ "   ", 190, lineSpace*1, SELECTEDITEM_SETPOINT);

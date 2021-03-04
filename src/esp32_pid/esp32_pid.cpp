@@ -57,7 +57,7 @@ void ESP32PID::initialize(double (*readInputFunction_)(), void (*setOutputFuncti
   inputLog = new DataLogger(_settings.dataLogDelay);
   setPointLog = new DataLogger(_settings.dataLogDelay);
   outputLog = new DataLogger(_settings.dataLogDelay);
-  oLed = new Display(200, &inputState.value, &_settings.SetPoint, &myOutput, &_settings.Kp, &_settings.Ki, &_settings.Kd, &_settings.Kp2, &_settings.Ki2, &_settings.Kd2, &_settings.pid2Band, &_settings.OperatingMode, &_settings.SampleTime, &_settings.PidDirection, &pidState.PidOutputP, &pidState.PidOutputI, &pidState.PidOutputD, &pidState.ManualOutput, &resetPid, &saveSettings, &pidState.UsePrimaryPID, &_settings.SettingAdjustmentMultiple, inputLog, setPointLog, outputLog);
+  oLed = new Display(200, &inputState, &_settings.SetPoint, &myOutput, &_settings.Kp, &_settings.Ki, &_settings.Kd, &_settings.Kp2, &_settings.Ki2, &_settings.Kd2, &_settings.pid2Band, &_settings.OperatingMode, &_settings.SampleTime, &_settings.PidDirection, &pidState.PidOutputP, &pidState.PidOutputI, &pidState.PidOutputD, &pidState.ManualOutput, &resetPid, &saveSettings, &pidState.UsePrimaryPID, &_settings.SettingAdjustmentMultiple, inputLog, setPointLog, outputLog);
   controls = new Controls(0,35,100,500);
   myPID = new PID(&inputState.value, &pidState.PidOutputSum, &_settings.SetPoint, &pidState.PidOutputP, &pidState.PidOutputI, &pidState.PidOutputD, _settings.Kp, _settings.Ki, _settings.Kd, _settings.PidDirection);
   myPID->SetMode(_settings.OperatingMode);
@@ -134,7 +134,7 @@ void ESP32PID::setFailsafe(int outputState, int min, int max){
 
 void ESP32PID::enableWebServer(){
   webServerEnabled = true;
-  myWebServer = new WebServer(&inputState.value, &_settings, &pidState, &resetPid, &saveSettings, inputLog, setPointLog, outputLog);
+  myWebServer = new WebServer(&inputState, &_settings, &pidState, &resetPid, &saveSettings, inputLog, setPointLog, outputLog);
 
 }
 

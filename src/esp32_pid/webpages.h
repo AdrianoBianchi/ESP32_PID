@@ -2,7 +2,6 @@
 
 
 void route_home(WebServer& s){
-
   s.client.println("<!doctype html>");
   s.client.println("<html lang=\"en\">");
   s.client.println("<head>");
@@ -32,6 +31,9 @@ void route_home(WebServer& s){
   s.client.println("margin-top: -20px;");
   s.client.println("color: #9f9f9f;");
   s.client.println("text-align: center;");
+  s.client.println("}");
+  s.client.println("#sensor-error{");
+  s.client.println("color: red;");
   s.client.println("}");
   s.client.println("</style>");
   s.client.println("<nav class=\"navbar navbar-expand-md navbar-dark bg-dark fixed-top\">");
@@ -63,6 +65,8 @@ void route_home(WebServer& s){
   s.client.println("<div class=\"col-4\">");
   s.client.println("<canvas id=\"setpoint-gauge-chart\" class=\"gauge-chart\"></canvas>");
   s.client.println("<p class=\"text-center gauge-label\"><span id=\"input\"></span></p>");
+  s.client.println("<p class=\"gauge-subtext\" id=\"sensor-error\" style=\"display: none;\">SENSOR ERROR</p>");
+  s.client.println("<p class=\"gauge-subtext\" id=\"redundant-sensor\" style=\"display: none;\">Inputs<span id=\"input-sensors-use-average\"> (a)</span> <span id=\"sensor1-value\"></span> / <span id=\"sensor2-value\"></span></p>");
   s.client.println("<p class=\"gauge-subtext\">Setpoint <span id=\"setpoint\"></span></p>");
   s.client.println("</div>");
   s.client.println("<div class=\"col-2\">");
@@ -75,8 +79,9 @@ void route_home(WebServer& s){
   s.client.println("<div class=\"col-1\">");
   s.client.println("</div>");
   s.client.println("</div>");
-  s.client.println("<canvas id=\"myChart\"></canvas>");
-  s.client.println("<canvas id=\"myChart2\"></canvas>");
+  s.client.println("<div class=\"row\" style=\"height:400px;\">");
+  s.client.println("<canvas id=\"myChart\" style=\"background-color:#eee;\"></canvas>");
+  s.client.println("</div>");
   s.client.println("<!--         <h2>Settings</h2>");
   s.client.println("<form>");
   s.client.println("<h3>Pid 1</h3>");
@@ -159,11 +164,11 @@ void route_home(WebServer& s){
   s.client.println("$.getJSON( API_URL + \"/variables\", function( data ) {");
   s.client.println("var items = [];");
   s.client.println("console.log(data);");
-  s.client.println("$(\"#input\").text(data.In);");
+  s.client.println("$(\"#input\").text(data.In.val);");
   s.client.println("$(\"#setpoint\").text(data.SP);");
   s.client.println("// $(\"#PidDirection\").text(data.Settings.PidDirection);");
   s.client.println("if(data.Md){");
-  s.client.println("updateGauges(data.SP,data.In,data.O);");
+  s.client.println("updateGauges(data.SP,data.In.val,data.O);");
   s.client.println("$(\"#outputMode\").text(\"\");");
   s.client.println("$(\"#output\").text(data.O);");
   s.client.println("$(\"#PidOutputP\").text(data.P);");
@@ -183,7 +188,22 @@ void route_home(WebServer& s){
   s.client.println("$(\"#pid-status\").hide();");
   s.client.println("$(\"#pid-internal-values\").hide();");
   s.client.println("$(\"#output\").text(data.Mn);");
-  s.client.println("updateGauges(data.SP,data.In,data.Mn);");
+  s.client.println("updateGauges(data.SP,data.In.val,data.Mn);");
+  s.client.println("}");
+  s.client.println("if(data.In.r){");
+  s.client.println("$(\"#redundant-sensor\").show();");
+  s.client.println("$(\"#sensor1-value\").text(data.In.i1);");
+  s.client.println("$(\"#sensor2-value\").text(data.In.i2);");
+  s.client.println("}");
+  s.client.println("if(data.In.e){");
+  s.client.println("$(\"#sensor-error\").show();");
+  s.client.println("}else{");
+  s.client.println("$(\"#sensor-error\").hide();");
+  s.client.println("}");
+  s.client.println("if(data.In.a){");
+  s.client.println("$(\"#input-sensors-use-average\").show();");
+  s.client.println("}else{");
+  s.client.println("$(\"#input-sensors-use-average\").hide();");
   s.client.println("}");
   s.client.println("// $(\"#Kp\").val(data.Settings.Kp);");
   s.client.println("// $(\"#Ki\").val(data.Settings.Ki);");
@@ -287,21 +307,21 @@ void route_home(WebServer& s){
   s.client.println("datasets: [");
   s.client.println("{");
   s.client.println("label: 'Input',");
-  s.client.println("// backgroundColor: 'rgb(255, 99, 132)',");
+  s.client.println("backgroundColor: 'rgba(0, 0, 0, 0)',");
   s.client.println("borderColor: 'rgb(255, 0, 0)',");
   s.client.println("data: data.inputData,");
   s.client.println("yAxisID: 'B',");
   s.client.println("},");
   s.client.println("{");
   s.client.println("label: 'Setpoint',");
-  s.client.println("// backgroundColor: 'rgb(255, 99, 132)',");
+  s.client.println("backgroundColor: 'rgba(0, 0, 0, 0)',");
   s.client.println("borderColor: 'rgb(255, 155, 0)',");
   s.client.println("data: data.setpointData,");
   s.client.println("yAxisID: 'B',");
   s.client.println("},");
   s.client.println("{");
   s.client.println("label: 'Output',");
-  s.client.println("// backgroundColor: 'rgb(255, 99, 132)',");
+  s.client.println("backgroundColor: 'rgba(0, 0, 0, 0)',");
   s.client.println("borderColor: 'rgb(0, 255, 0)',");
   s.client.println("data: data.outputData,");
   s.client.println("yAxisID: 'A',");
@@ -311,6 +331,7 @@ void route_home(WebServer& s){
   s.client.println("// Configuration options go here");
   s.client.println("options: {");
   s.client.println("scales: {");
+  s.client.println("xAxes: [{display:false}],");
   s.client.println("yAxes: [{");
   s.client.println("id: 'A',");
   s.client.println("type: 'linear',");
@@ -322,9 +343,11 @@ void route_home(WebServer& s){
   s.client.println("}, {");
   s.client.println("id: 'B',");
   s.client.println("type: 'linear',");
-  s.client.println("position: 'right',");
+  s.client.println("position: 'right'");
   s.client.println("}]");
-  s.client.println("}");
+  s.client.println("},");
+  s.client.println("maintainAspectRatio:false,");
+  s.client.println("responsive:true");
   s.client.println("}");
   s.client.println("});");
   s.client.println("function addData() {");
@@ -351,6 +374,7 @@ void route_home(WebServer& s){
   s.client.println("</script>");
   s.client.println("</body>");
   s.client.println("</html>");
+
 
 
 
@@ -422,17 +446,28 @@ void route_test(WebServer& s){
 }
 
 void variables_get(WebServer& s){
-  s.client.println( "{\"In\" : " + String(*s._Input) +
-                     ",\"SP\" : " + String(s._settings->SetPoint) +
-                     ",\"D\" : " + String(s._settings->PidDirection) +
-                     ",\"Md\" : " + String(s._settings->OperatingMode) +
-                     ",\"O\" : " + String(s._pidState->PidOutputSum) +
-                     ",\"P\" : " + String(s._pidState->PidOutputP) +
-                     ",\"I\" : " + String(s._pidState->PidOutputI) +
-                     ",\"D\" : " + String(s._pidState->PidOutputD) +
-                     ",\"Pr\" : " + String(s._pidState->UsePrimaryPID) +
-                     ",\"Mn\" : " + String(s._pidState->ManualOutput) +
-                    "}");
+  s.client.println("{");
+  s.client.println("\"In\" : {");
+  s.client.println("\"val\" : " + String(s.inputState->value) + ",");
+  s.client.println("\"i1\" : " + String(s.inputState->input1) + ",");
+  s.client.println("\"i2\" : " + String(s.inputState->input2) + ",");
+  s.client.println("\"r\" : " + String(s.inputState->useRedundantSensor) + ",");
+  s.client.println("\"e\" : " + String(s.inputState->error) + ",");
+  s.client.println("\"a\" : " + String(s.inputState->useAverage) + "");
+  s.client.println("},");
+  s.client.println("\"SP\" : " + String(s._settings->SetPoint) + ",");
+  s.client.println("\"D\" : " + String(s._settings->PidDirection) + ",");
+  s.client.println("\"Md\" : " + String(s._settings->OperatingMode) + ",");
+  s.client.println("\"O\" : " + String(s._pidState->PidOutputSum) + ",");
+  s.client.println("\"P\" : " + String(s._pidState->PidOutputP) + ",");
+  s.client.println("\"I\" : " + String(s._pidState->PidOutputI) + ",");
+  s.client.println("\"D\" : " + String(s._pidState->PidOutputD) + ",");
+  s.client.println("\"Pr\" : " + String(s._pidState->UsePrimaryPID) + ",");
+  s.client.println("\"Mn\" : " + String(s._pidState->ManualOutput) + "");
+  s.client.println("}");
+
+
+
 
 
 

@@ -46,4 +46,16 @@ struct pid_state_values{
     int ManualOutput = 0;
 };
 
+
+struct input_state{
+  double value;
+  double input1;
+  double input2;
+  int useRedundantSensor;
+  int error = 0;
+  unsigned int last_update;
+  bool useAverage;
+};
+
+
 #endif

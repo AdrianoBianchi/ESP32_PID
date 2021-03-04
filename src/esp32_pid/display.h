@@ -5,7 +5,9 @@
 #include "controls.h"
 #include "pid.h"
 #include "data_logger.h"
+#include "datatypes.h"
 #include <TFT_eSPI.h>
+#include "input_.h"
 
 #define SELECTEDITEM_MODE 0
 #define SELECTEDITEM_SETPOINT 1
@@ -31,7 +33,7 @@
 class Display
 {
   public:
-    Display(int update_ms, double *Input, double *SetPoint, double *Output, 
+    Display(int update_ms, input_state *inputState_, double *SetPoint, double *Output, 
             double *Kp, double *Ki, double *Kd, 
             double *Kp2, double *Ki2, double *Kd2, int *pid2Band,
             bool *OperatingMode, int *SampleTime, bool *PidDirection,
@@ -45,7 +47,7 @@ class Display
     unsigned long _last_update;
     unsigned long _last_chart_update;
     unsigned int _update_ms;
-    double *_Input;
+    input_state *inputState;
     double *_SetPoint;
     double *_Output;
     double *_Kp;

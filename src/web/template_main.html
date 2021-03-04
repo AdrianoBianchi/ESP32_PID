@@ -31,6 +31,9 @@
       color: #9f9f9f;
       text-align: center;
     }
+    #sensor-error{
+      color: red;
+    }
   </style>
 
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
@@ -72,6 +75,8 @@
           <div class="col-4">
             <canvas id="setpoint-gauge-chart" class="gauge-chart"></canvas>
             <p class="text-center gauge-label"><span id="input"></span></p>
+            <p class="gauge-subtext" id="sensor-error" style="display: none;">SENSOR ERROR</p>
+            <p class="gauge-subtext" id="redundant-sensor" style="display: none;">Inputs<span id="input-sensors-use-average"> (a)</span> <span id="sensor1-value"></span> / <span id="sensor2-value"></span></p>
             <p class="gauge-subtext">Setpoint <span id="setpoint"></span></p>
           </div>
 
@@ -91,10 +96,9 @@
 
         
 
-               
-
-        <canvas id="myChart"></canvas>
-        <canvas id="myChart2"></canvas>
+          <div class="row" style="height:400px;">
+          <canvas id="myChart" style="background-color:#eee;"></canvas>
+          </div>
 
 <!--         <h2>Settings</h2>
         
@@ -202,11 +206,11 @@
           var items = [];
           console.log(data);
          
-          $("#input").text(data.In);
+          $("#input").text(data.In.val);
           $("#setpoint").text(data.SP);
           // $("#PidDirection").text(data.Settings.PidDirection);
           if(data.Md){
-            updateGauges(data.SP,data.In,data.O);
+            updateGauges(data.SP,data.In.val,data.O);
             $("#outputMode").text("");
             $("#output").text(data.O);
             $("#PidOutputP").text(data.P);
@@ -226,8 +230,26 @@
             $("#pid-status").hide();
             $("#pid-internal-values").hide();
             $("#output").text(data.Mn);
-            updateGauges(data.SP,data.In,data.Mn);
+            updateGauges(data.SP,data.In.val,data.Mn);
           }
+
+          if(data.In.r){
+            $("#redundant-sensor").show();
+            $("#sensor1-value").text(data.In.i1);
+            $("#sensor2-value").text(data.In.i2);
+          }
+
+          if(data.In.e){
+            $("#sensor-error").show();
+          }else{
+            $("#sensor-error").hide();
+          }
+          if(data.In.a){
+            $("#input-sensors-use-average").show();
+          }else{
+            $("#input-sensors-use-average").hide();
+          }
+          
           
           
           // $("#Kp").val(data.Settings.Kp);
@@ -247,7 +269,8 @@
       }
 
 
-      $( document ).ready(function() {
+      $( document ).ready(function() {     
+
         console.log("Ready");
         updateVariables();
         var ctx = document.getElementById('myChart').getContext('2d');
@@ -287,6 +310,7 @@
             color: "#000000",  // Optional: Label text color
             fractionDigits: 0  // Optional: Numerical precision. 0=round off.
           }
+          
           
         };
           
@@ -353,21 +377,21 @@
                   datasets: [
                       {
                       label: 'Input',
-                      // backgroundColor: 'rgb(255, 99, 132)',
+                      backgroundColor: 'rgba(0, 0, 0, 0)',
                       borderColor: 'rgb(255, 0, 0)',
                       data: data.inputData,
                       yAxisID: 'B',
                       },
                       {
                       label: 'Setpoint',
-                      // backgroundColor: 'rgb(255, 99, 132)',
+                      backgroundColor: 'rgba(0, 0, 0, 0)',
                       borderColor: 'rgb(255, 155, 0)',
                       data: data.setpointData,
                       yAxisID: 'B',
                       },
                       {
                       label: 'Output',
-                      // backgroundColor: 'rgb(255, 99, 132)',
+                      backgroundColor: 'rgba(0, 0, 0, 0)',
                       borderColor: 'rgb(0, 255, 0)',
                       data: data.outputData,
                       yAxisID: 'A',
@@ -381,6 +405,7 @@
               // Configuration options go here
               options: {
                         scales: {
+                          xAxes: [{display:false}],
                           yAxes: [{
                             id: 'A',
                             type: 'linear',
@@ -392,11 +417,14 @@
                           }, {
                             id: 'B',
                             type: 'linear',
-                            position: 'right',
+                            position: 'right'
                             
                           
                           }]
-                        }
+                        },
+                        maintainAspectRatio:false,
+                        responsive:true
+
                        }
           });
 

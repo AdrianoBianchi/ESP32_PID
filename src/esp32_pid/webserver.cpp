@@ -21,14 +21,14 @@ Route myRoutes[ROUTES_LEN] = {
 
 
 
-WebServer::WebServer( double *Input,
+WebServer::WebServer( input_state *inputState_,
                       struct esp32_pid_settings *settings,
                       struct pid_state_values *pidState,
                       bool *resetPID,bool *saveSettings,
                       DataLogger *inputLog, DataLogger *setpointLog, DataLogger *outputLog)
 {
 
-  _Input = Input;
+  inputState = inputState_;
   _settings = settings;
   _pidState = pidState;
   _resetPID = resetPID;

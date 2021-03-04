@@ -10,7 +10,7 @@
 
 class WebServer{
   public:
-    WebServer(double *Input,
+    WebServer(input_state *inputState_,
               struct esp32_pid_settings *,
               struct pid_state_values *,
               bool *resetPID, bool *saveSettings,
@@ -18,8 +18,7 @@ class WebServer{
       );
 
     void processRequests();
-
-    double *_Input;
+    struct input_state *inputState;
     struct esp32_pid_settings *_settings;
     struct pid_state_values *_pidState;
     bool *_resetPID;

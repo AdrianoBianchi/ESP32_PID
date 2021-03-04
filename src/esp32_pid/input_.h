@@ -2,13 +2,8 @@
 #define Input__
 
 #include "Arduino.h"
+#include "datatypes.h"
 
-
-struct input_state{
-  double value;
-  int error = 0;
-  unsigned int last_update;
-};
 
 class Input_{
   public:
