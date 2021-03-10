@@ -15,11 +15,11 @@ class ESP32PID{
   public:
     ESP32PID(double (*readInputFunction_)(), void (*setOutputFunction_)(double), struct esp32_pid_settings settings);
     ESP32PID(double (*readInputFunction_)(), void (*setOutputFunction_)(double));
-    void setFailsafe(int outputState, int min, int max=10000);
-    void useOutputWindow(int windowPeriodSeconds);
     void loop();
+    void useOutputWindow(int windowPeriodSeconds);
+    void useRedundantInput(double (*readInputFunction_)(), int maxDifference, bool useAverage=false);
     void enableWebServer();
-    void useRedundantInput(double (*readInputFunction_)(), int maxDifference, bool useAverage=false, int outputState=0);
+    int errorOutputValue = 0;
   private:
     struct esp32_pid_settings _settings;
     struct output_window_values outputWindow; 
@@ -30,8 +30,6 @@ class ESP32PID{
     bool resetPid = false;
     bool saveSettings = false;
     bool webServerEnabled = false;
-
-    int errorOutputValue = 0;
 
     void (*setOutputFunction)(double);
     void initialize(double (*readInputFunction_)(), void (*setOutputFunction_)(double));

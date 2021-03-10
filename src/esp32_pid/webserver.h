@@ -32,12 +32,20 @@ class WebServer{
     void sendResponseHeaders();
     void send404();
     void parseRoute();
-    unsigned long clientListenStartTime;
-    unsigned long requestStartTime;
-    unsigned long responseStartTime;
+    void checkServerOnline();
+    void readRequest();
+    void sendResponse();
+    void closeConnection();
+    bool currentlyReceiving = false;
+    String currentLine = "";
+    unsigned long clientConnectStartTime;
+    unsigned long currentResponseStartTime;
+    unsigned long lastReceiveTime;
+    // unsigned long requestStartTime;
+    
     unsigned long currentTime;
     unsigned long previousTime;
-    int timeoutTime = 1000;
+    int timeoutTime = 250;
     String header;
     bool serverStarted = false;
     unsigned long lastWifiConnectionCheck = 0;

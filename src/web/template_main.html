@@ -174,12 +174,22 @@
       var API_URL = "";
       var GAUGE_SP;
       var GAUGE_OUTPUT;
+      var INPUT_LAST_MIN;
+      var INPUT_LAST_MAX;
       function updateGauges(setpoint, input, output){
         // GAUGE_OUTPUT
         
         var diff = Math.abs(input - setpoint);
-        var min = Math.floor(setpoint - diff * 1.1);
-        var max = Math.ceil(setpoint + diff * 1.1);
+        var pad = Math.ceil(diff * 1.1);
+        var min = setpoint - pad;
+        var max = setpoint + pad;
+
+        if(INPUT_LAST_MIN != min || INPUT_LAST_MAX != max){
+          GAUGE_SP.animationSpeed = 1; 
+        }
+        else{
+          GAUGE_SP.animationSpeed = 32; // set animation speed (32 is default value)
+        }
         
         if(GAUGE_SP.maxValue != max){
           GAUGE_SP.maxValue = max; // set max gauge value
@@ -189,7 +199,7 @@
           GAUGE_SP.setMinValue(min);
         }
         //   // Prefer setter over GAUGE_SP.minValue = 0
-        // GAUGE_SP.animationSpeed = 32; // set animation speed (32 is default value)
+        
         GAUGE_SP.set(input); // set actual value
         GAUGE_SP.options.staticLabels.labels = [min,max,setpoint];
         GAUGE_SP.options.renderTicks.divisions = max-min;
@@ -198,6 +208,8 @@
 
         GAUGE_OUTPUT.set(output); // set actual value
         GAUGE_OUTPUT.options.staticLabels.labels = [output];
+        INPUT_LAST_MIN = min;
+        INPUT_LAST_MAX = max;
 
 
       }
@@ -235,8 +247,19 @@
 
           if(data.In.r){
             $("#redundant-sensor").show();
-            $("#sensor1-value").text(data.In.i1);
-            $("#sensor2-value").text(data.In.i2);
+            if(data.In.i1){
+              $("#sensor1-value").text(data.In.i1);
+            }
+            else{
+              $("#sensor1-value").text("Err");
+            }
+            if(data.In.i2){
+              $("#sensor2-value").text(data.In.i2);
+            }
+            else{
+              $("#sensor2-value").text("Err");
+            }
+
           }
 
           if(data.In.e){

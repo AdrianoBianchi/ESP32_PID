@@ -140,11 +140,20 @@ void route_home(WebServer& s){
   s.client.println("var API_URL = \"\";");
   s.client.println("var GAUGE_SP;");
   s.client.println("var GAUGE_OUTPUT;");
+  s.client.println("var INPUT_LAST_MIN;");
+  s.client.println("var INPUT_LAST_MAX;");
   s.client.println("function updateGauges(setpoint, input, output){");
   s.client.println("// GAUGE_OUTPUT");
   s.client.println("var diff = Math.abs(input - setpoint);");
-  s.client.println("var min = Math.floor(setpoint - diff * 1.1);");
-  s.client.println("var max = Math.ceil(setpoint + diff * 1.1);");
+  s.client.println("var pad = Math.ceil(diff * 1.1);");
+  s.client.println("var min = setpoint - pad;");
+  s.client.println("var max = setpoint + pad;");
+  s.client.println("if(INPUT_LAST_MIN != min || INPUT_LAST_MAX != max){");
+  s.client.println("GAUGE_SP.animationSpeed = 1;");
+  s.client.println("}");
+  s.client.println("else{");
+  s.client.println("GAUGE_SP.animationSpeed = 32; // set animation speed (32 is default value)");
+  s.client.println("}");
   s.client.println("if(GAUGE_SP.maxValue != max){");
   s.client.println("GAUGE_SP.maxValue = max; // set max gauge value");
   s.client.println("}");
@@ -153,12 +162,13 @@ void route_home(WebServer& s){
   s.client.println("GAUGE_SP.setMinValue(min);");
   s.client.println("}");
   s.client.println("//   // Prefer setter over GAUGE_SP.minValue = 0");
-  s.client.println("// GAUGE_SP.animationSpeed = 32; // set animation speed (32 is default value)");
   s.client.println("GAUGE_SP.set(input); // set actual value");
   s.client.println("GAUGE_SP.options.staticLabels.labels = [min,max,setpoint];");
   s.client.println("GAUGE_SP.options.renderTicks.divisions = max-min;");
   s.client.println("GAUGE_OUTPUT.set(output); // set actual value");
   s.client.println("GAUGE_OUTPUT.options.staticLabels.labels = [output];");
+  s.client.println("INPUT_LAST_MIN = min;");
+  s.client.println("INPUT_LAST_MAX = max;");
   s.client.println("}");
   s.client.println("function updateVariables(){");
   s.client.println("$.getJSON( API_URL + \"/variables\", function( data ) {");
@@ -192,8 +202,18 @@ void route_home(WebServer& s){
   s.client.println("}");
   s.client.println("if(data.In.r){");
   s.client.println("$(\"#redundant-sensor\").show();");
+  s.client.println("if(data.In.i1){");
   s.client.println("$(\"#sensor1-value\").text(data.In.i1);");
+  s.client.println("}");
+  s.client.println("else{");
+  s.client.println("$(\"#sensor1-value\").text(\"Err\");");
+  s.client.println("}");
+  s.client.println("if(data.In.i2){");
   s.client.println("$(\"#sensor2-value\").text(data.In.i2);");
+  s.client.println("}");
+  s.client.println("else{");
+  s.client.println("$(\"#sensor2-value\").text(\"Err\");");
+  s.client.println("}");
   s.client.println("}");
   s.client.println("if(data.In.e){");
   s.client.println("$(\"#sensor-error\").show();");
@@ -378,6 +398,7 @@ void route_home(WebServer& s){
 
 
 
+
 }
 
 
@@ -448,9 +469,25 @@ void route_test(WebServer& s){
 void variables_get(WebServer& s){
   s.client.println("{");
   s.client.println("\"In\" : {");
-  s.client.println("\"val\" : " + String(s.inputState->value) + ",");
-  s.client.println("\"i1\" : " + String(s.inputState->input1) + ",");
-  s.client.println("\"i2\" : " + String(s.inputState->input2) + ",");
+  if(!isnan(s.inputState->value)){
+    s.client.println("\"val\" : " + String(s.inputState->value) + ",");
+  }
+  else{
+    s.client.println("\"val\" : null,");
+  }
+  if(!isnan(s.inputState->input1)){
+    s.client.println("\"i1\" : " + String(s.inputState->input1) + ",");
+  }
+  else{
+    s.client.println("\"i1\" : null,");
+  }
+  if(!isnan(s.inputState->input2)){
+    s.client.println("\"i2\" : " + String(s.inputState->input2) + ",");
+  }
+  else{
+    s.client.println("\"i2\" : null,");
+  }
+  
   s.client.println("\"r\" : " + String(s.inputState->useRedundantSensor) + ",");
   s.client.println("\"e\" : " + String(s.inputState->error) + ",");
   s.client.println("\"a\" : " + String(s.inputState->useAverage) + "");

@@ -49,7 +49,7 @@ void WebServer::sendResponseHeaders(){
 };
 
 void WebServer::send404(){
-  Serial.println("No route found, sending 404");
+  // Serial.println("No route found, sending 404");
   client.println("HTTP/1.1 404 Not Found");
   client.println();
 }
@@ -57,9 +57,7 @@ void WebServer::send404(){
 void WebServer::parseRoute(){
   for(int i=0; i<ROUTES_LEN; i++){
     if(header.indexOf(myRoutes[i].requestType + " " + myRoutes[i].route) == 0 ){
-
-
-      Serial.println("Found Matching Route: " + myRoutes[i].requestType + " " + myRoutes[i].route);
+      // Serial.println("Found Matching Route: " + myRoutes[i].requestType + " " + myRoutes[i].route);
       sendResponseHeaders();
       (*myRoutes[i].handler)(*this);
       return;
@@ -69,66 +67,92 @@ void WebServer::parseRoute(){
 
 };
 
-void WebServer::processRequests(){
+void WebServer::checkServerOnline(){
   if(!wifiLastOnline && millis() - lastWifiConnectionCheck < WIFI_CONNECTION_CHECK_TIMEOUT){
     // Wifi wasn't online last time we checked, wait to recheck
     return;
   }
   if(WiFi.status() != WL_CONNECTED){
-    Serial.print("Error Starting Server, No WIFI Connection!");
+    Serial.println("Error Starting Server, No WIFI Connection!");
     lastWifiConnectionCheck = millis();
     return;
   }
   if(!serverStarted){
     myserver.begin();
-    Serial.print("Server Started");
+    Serial.println("Server Started. IP address: " + WiFi.localIP().toString() );
     serverStarted = true;
   }
   wifiLastOnline = true;
-
-  clientListenStartTime = millis();
-  client = myserver.available();   // Listen for incoming clients
-
-  if (client) {
-    currentTime = millis();
-    requestStartTime = currentTime;
-    previousTime = currentTime;
-    // Serial.println("New Client.");
+}
 
 
+#define MAX_BLOCK_TIME 10
 
-    String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected() && currentTime - previousTime <= timeoutTime) {  // loop while the client's connected
-      currentTime = millis();
-      if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();             // read a byte, then
-        //  Serial.write(c);                    // print it out the serial monitor
-        header += c;
-        if (c == '\n') {                    // if the byte is a newline character
-          // if the current line is blank, you got two newline characters in a row.
-          // that's the end of the client HTTP request, so send a response:
-          if (currentLine.length() == 0) {
-            responseStartTime = millis();
-            parseRoute();
-            client.println();
-            Serial.println("Total Time: " + String(millis()-clientListenStartTime) + "ms (" + 
-                                            String(requestStartTime-clientListenStartTime) + ", " + 
-                                            String(responseStartTime-requestStartTime) + ", " + 
-                                            String(millis() - responseStartTime) + ")");
-            break;
-          } else { // if you got a newline, then clear currentLine
-            currentLine = "";
-          }
-        } else if (c != '\r') {  // if you got anything else but a carriage return character,
-          currentLine += c;      // add it to the end of the currentLine
+void WebServer::readRequest(){
+
+  // check for listening clients
+  // read input for x milliseconds
+  // if response needed, call read response
+  // if no more response needed, kill connection
+
+  if(!currentlyReceiving){
+    client = myserver.available();
+    if(client){ 
+        currentlyReceiving = true; 
+        clientConnectStartTime = millis();
+        lastReceiveTime = millis();
+        // Serial.println("New Connection");
+      }
+    else{ return; }
+  }
+
+  currentResponseStartTime = millis();
+  
+  while(client.connected() && millis() - currentResponseStartTime <= MAX_BLOCK_TIME) {
+    if (client.available()) {
+      char c = client.read();             // read a byte, then
+      header += c;
+      lastReceiveTime = millis();
+      // Serial.print(c);
+      if (c == '\n') {
+        // if the current line is blank, you got two newline characters in a row.
+        // that's the end of the client HTTP request, so send a response:
+        if (currentLine.length() == 0) {
+          parseRoute();
+          client.println();
+          closeConnection();
+          return;
+
+        } else {
+          currentLine = "";
         }
+      } else if (c != '\r') {
+        currentLine += c;
       }
     }
-    // Clear the header variable
-    header = "";
-    // Close the connection
-    client.stop();
-    // Serial.println("Client disconnected.");
-    // Serial.println("");
   }
+
+  if(millis()-lastReceiveTime > timeoutTime){
+    closeConnection();
+  }
+
+ 
+
+}
+
+void WebServer::sendResponse(){
+
+}
+void WebServer::closeConnection(){
+  header = "";
+  currentLine = "";
+  currentlyReceiving = false;
+  client.stop();
+  // Serial.println("Connection closed total time: " + String(millis()-clientConnectStartTime));
+}
+
+
+void WebServer::processRequests(){
+  checkServerOnline();
+  readRequest();
 }

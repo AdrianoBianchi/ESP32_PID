@@ -4,6 +4,7 @@
 
 #define DATA_ARRAY_SIZE 200
 #define EMPTY_DATA 10000
+#define ERROR_VALUE 0
 
 
 class DataLogger

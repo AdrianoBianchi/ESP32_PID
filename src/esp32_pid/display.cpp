@@ -352,8 +352,20 @@ void Display::draw_setpoint_section(){
   else{ _draw_text( String(inputState->value) + " ", 80, lineSpace*1); }
 
   if(inputState->useRedundantSensor){
-    _draw_text( _rightPadString(String(int(round(inputState->input1))),4," "), 50, lineSpace*1, 1); 
-    _draw_text( _rightPadString(String(int(round(inputState->input2))),4," "), 50, lineSpace + 8, 1); 
+    if(isnan(inputState->input1)){
+      _draw_text( _rightPadString("Err",4," "), 50, lineSpace*1, 1);
+    }
+    else{
+      _draw_text( _rightPadString(String(int(round(inputState->input1))),4," "), 50, lineSpace*1, 1);
+    }
+    
+    if(isnan(inputState->input2)){
+       _draw_text( _rightPadString("Err",4," "), 50, lineSpace + 8, 1);
+    }
+    else{
+      _draw_text( _rightPadString(String(int(round(inputState->input2))),4," "), 50, lineSpace + 8, 1); 
+    }
+     
   }
   if(*_OperatingMode == AUTOMATIC){
     _draw_text( String("/"), 170, lineSpace*1);

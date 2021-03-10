@@ -172,29 +172,27 @@ You can implement basic failsafe functionality by specifing the minimum and maxi
   myESP32PID->enableWebServer();
   WiFi.begin(ssid, password);
 
-  // wait for wifi connection
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  // Print local IP address and start web server
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
 
 ```
 
 ### Failsafe ###
 
-You can implement basic failsafe functionality by specifing the minimum and maximum valid sensor values and a default output value.  If the sensor value falls outside this range, the output will default the failsafe output state.  This can prevent an overheating in a heating PID in the event a sensor is disconnected.
+You can implement basic failsafe functionality by returning the value of NAN from the input function.  You can set the minimum and maximum valid sensor values and if the sensor value falls outside this range, the output will default the failsafe output state.  This can prevent an overheating in a heating PID in the event a sensor is disconnected.
 
 ```c++
+  double readInput(){
+  double value = sensor.read();
+  if(value<0 || value>1000){
+    return nan(""); // returning NAN indicates an error 
+  }
+  return value;
+}
+
   myESP32PID = new ESP32PID(readInput, setOutput);
-  int failsafeOutputState = 0; // this should be a value between 0 and 100
-  int min=-100; // if input sensor reads below -100 the output will be set to the failsafeOutputState of 0
-  int max=1000; // if input sensor reads above 1000, set output to 0
-  myESP32PID->setFailsafe(failsafeOutputState, min, max);
+  // you can specify the output 0-100 (default 0) in the event of a sensor disagreement
+  myESP32PID->errorOutputValue = 50;
+
+
 ```
 
 ### Redundant Sensor ###
@@ -219,12 +217,8 @@ You can use a redundant input sensor to ensure the sensor is reading correctly. 
   myESP32PID->useRedundantInput(readInputRedundant, maxSensorDifference, useAverage);
 
 
-  // A fourth parameter specifies the output (default 0) in the event of a sensor disagreement
-  int defaultOutput = 100;
-  myESP32PID->useRedundantInput(readInputRedundant, maxSensorDifference, useAverage, defaultOutput);
-
-
-
+  // you can specify the output 0-100 (default 0) in the event of a sensor disagreement
+  myESP32PID->errorOutputValue = 50;
 
   
 ```
@@ -269,6 +263,7 @@ myESP32PID = new ESP32PID(readInput, setOutput, settings);
 // int pid2Band = 10;
 // int dataLogDelay = 10000; // 10 seconds - gives about 40 minutes of chart
 // int SettingAdjustmentMultiple = 1;
+// unsigned int maxSensorQueryTime = 5000; // max amount of time in MS to spend trying to get valid result from each sensor
 
 
 ```

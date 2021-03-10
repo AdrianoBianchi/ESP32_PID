@@ -1,6 +1,6 @@
 #include "Arduino.h"
 #include "input_.h"
-
+#define DEBUG
 
 
 
@@ -14,41 +14,76 @@ input_state Input_::read()
   input_state myState;
   myState.useRedundantSensor = redundantInputEnabled;
   myState.useAverage = redundantUseAverage;
-  double InputA = (*readInputA)();
+  double InputA = queryInput(readInputA, maxSensorQueryTime, 1);
 
 
   // Redundant Sensor
   if(redundantInputEnabled){
-    double InputB = (*readInputB)();
+    double InputB = queryInput(readInputB, maxSensorQueryTime, 2);
 
-    if(abs(InputA-InputB) > redundantMaxDifference){
-      myState.error = REDUNDANT_SENSOR_ERROR;
-      Serial.println("Sensor error.  Primary and redundant sensors not in agreement " + String(InputA) + " " + String(InputB) + ". Max difference = " + String(redundantMaxDifference) );
+    // Check failsafe
+    if(isnan(InputA) || isnan(InputB)){
+      if( isnan(InputA) ){
+        myState.error = SENSOR1_ERROR;
+      }
+      if( isnan(InputB) ){
+        myState.error = SENSOR2_ERROR;
+      }
+    }
+    else if(abs(InputA-InputB) > redundantMaxDifference){
+      myState.error = REDUNDANT_SENSOR_MISMATCH;
     }
     else{
       myState.error = 0;
     }
-    if(redundantUseAverage){
-      myState.input1 = InputA;
-      myState.input2 = InputB;
+   
+    if(myState.error){
+      myState.value = nan("");
+    }
+    else if(redundantUseAverage){
       myState.value = (InputA+InputB)/2.0;
     }
     else{
       myState.value = InputA;
     }
+
+    // PRINT ERROR TO CONSOLE
+    #ifdef DEBUG
+      switch(myState.error) {
+        case SENSOR1_ERROR:
+          Serial.println("Sensor 1 error." );
+          break;
+        case SENSOR2_ERROR:
+          Serial.println("Sensor 2 error." );
+          break;
+        case REDUNDANT_SENSOR_MISMATCH:
+          if(lastReadingA != InputA && lastReadingB != InputB){
+            Serial.println("REDUNDANT SENSOR DISAGREEMENT! Sensor 1: " + String(InputA) + ", Sensor 2: " + String(InputB) + ". Max allowed difference " + String(redundantMaxDifference) );
+          } 
+          break;
+        default:
+          break;
+      }
+    #endif
+    
+    myState.input1 = InputA;
+    myState.input2 = InputB;
+    lastReadingA = InputA;
+    lastReadingB = InputB;
     myState.last_update = millis();
     return myState;
   }
 
   // Failsafe
-  if( failsafeEnabled && (InputA <= failsafeMinInput || InputA >= failsafeMaxInput) ){
-    myState.error = FAILSAFE_SENSOR_ERROR;
-    Serial.println("Sensor error.  Sensor outside of safe input " + String(failsafeMinInput) + ". Valid range - " + String(failsafeMinInput) + " - " + String(failsafeMaxInput) );
+  if( isnan(InputA) ){
+    myState.error = SENSOR1_ERROR;
+    Serial.println("Sensor error." );
   }
   else{
     myState.value = InputA;
     myState.error = 0;
   }
+  lastReadingA = InputA;
   myState.last_update = millis();
   return myState;
 }
@@ -60,8 +95,21 @@ void Input_::useRedundantInput(double (*readInputFunction_)(), int maxDifference
   redundantInputEnabled = true;
 }
 
-void Input_::setFailsafe(int min, int max){
-  failsafeMinInput = min;
-  failsafeMaxInput = max;
-  failsafeEnabled = true;
+
+double Input_::queryInput(double (*readInputFunction_)(), int maxQueryTimeMS, int sensorId){
+  unsigned long queryStartTime = millis();
+  double result;
+  int loopCount = 0;
+  while(millis()-queryStartTime<maxQueryTimeMS){
+     result = (*readInputFunction_)();
+     if(!isnan(result)){
+      if(loopCount>0){
+        Serial.println("Sensor " +String(sensorId) + " took " + String(millis()-queryStartTime) + " ms and " + String(loopCount+1) + " tries.  Max query time " + String(maxQueryTimeMS) + " ms.");
+      }
+      return result;
+     }
+     delay(loopCount*100);
+     loopCount +=1;
+  }
+  return nan("");
 }

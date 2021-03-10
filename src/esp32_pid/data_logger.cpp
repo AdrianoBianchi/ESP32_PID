@@ -14,7 +14,13 @@ DataLogger::DataLogger(int log_delay_ms){
 
 bool DataLogger::logData(double log_data){
   if(millis() - _last_logged > _log_delay_ms){
-    _data_array[_current_pos] = log_data;
+    if(isnan(log_data)){
+      _data_array[_current_pos] = ERROR_VALUE;
+    }
+    else{
+      _data_array[_current_pos] = log_data;
+    }
+    
     if(_current_pos==DATA_ARRAY_SIZE-1){
       _current_pos = 0;
     }

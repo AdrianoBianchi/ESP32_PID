@@ -33,8 +33,7 @@ void ESP32PID::useOutputWindow(int windowLength){
   outputWindow.cycleStartTime = millis();
 }
 
-void ESP32PID::useRedundantInput(double (*readInputFunction_)(), int maxDifference, bool useAverage, int outputState){
-  errorOutputValue = outputState;
+void ESP32PID::useRedundantInput(double (*readInputFunction_)(), int maxDifference, bool useAverage){
   myInput->useRedundantInput(readInputFunction_,  maxDifference, useAverage);
 }
 
@@ -54,6 +53,7 @@ void ESP32PID::initialize(double (*readInputFunction_)(), void (*setOutputFuncti
   mySettings = new SettingsStore(&_settings.SetPoint, &_settings.Kp, &_settings.Ki, &_settings.Kd, &_settings.Kp2, &_settings.Ki2, &_settings.Kd2, &_settings.PidDirection, &_settings.SampleTime, &_settings.pid2Band, &_settings.SettingAdjustmentMultiple);
   mySettings->load();
   myInput = new Input_(readInputFunction_);
+  myInput->maxSensorQueryTime = _settings.maxSensorQueryTime;
   inputLog = new DataLogger(_settings.dataLogDelay);
   setPointLog = new DataLogger(_settings.dataLogDelay);
   outputLog = new DataLogger(_settings.dataLogDelay);
@@ -127,15 +127,9 @@ double ESP32PID::calculateWindowOutput(double output){
   }
 
 
-void ESP32PID::setFailsafe(int outputState, int min, int max){
-  myInput->setFailsafe(min, max);
-  errorOutputValue = outputState;
-}
-
 void ESP32PID::enableWebServer(){
   webServerEnabled = true;
   myWebServer = new WebServer(&inputState, &_settings, &pidState, &resetPid, &saveSettings, inputLog, setPointLog, outputLog);
-
 }
 
 
