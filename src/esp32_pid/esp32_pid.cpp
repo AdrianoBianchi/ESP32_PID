@@ -198,4 +198,8 @@ double ESP32PID::getOutput(){
   return myOutput;
 }
 
+void ESP32PID::setSP(double sp){
+  _settings.SetPoint = sp;
+}
+
 

@@ -23,6 +23,7 @@ class ESP32PID{
     input_state getInputState();
     esp32_pid_settings getSettings();
     double getOutput();
+    void setSP(double sp);
     int errorOutputValue = 0;
 
   private:
