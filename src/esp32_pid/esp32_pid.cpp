@@ -176,7 +176,26 @@ void ESP32PID::syncSettings(){
 
 
 
+pid_state_values ESP32PID::getPidState(){
+  pid_state_values tempPidState;
+  tempPidState = pidState;
+  return tempPidState;
+}
 
 
+input_state ESP32PID::getInputState(){
+  input_state temp_input_state;
+  temp_input_state = inputState;
+  return temp_input_state;
+}
+esp32_pid_settings ESP32PID::getSettings(){
+  esp32_pid_settings temp_esp32_pid_settings;
+  temp_esp32_pid_settings = _settings;
+  return temp_esp32_pid_settings;
+}
+
+double ESP32PID::getOutput(){
+  return myOutput;
+}
 
 

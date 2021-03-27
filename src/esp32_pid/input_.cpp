@@ -103,9 +103,9 @@ double Input_::queryInput(double (*readInputFunction_)(), int maxQueryTimeMS, in
   while(millis()-queryStartTime<maxQueryTimeMS){
      result = (*readInputFunction_)();
      if(!isnan(result)){
-      if(loopCount>0){
-        Serial.println("Sensor " +String(sensorId) + " took " + String(millis()-queryStartTime) + " ms and " + String(loopCount+1) + " tries.  Max query time " + String(maxQueryTimeMS) + " ms.");
-      }
+      // if(loopCount>0){
+      //   Serial.println("Sensor " +String(sensorId) + " took " + String(millis()-queryStartTime) + " ms and " + String(loopCount+1) + " tries.  Max query time " + String(maxQueryTimeMS) + " ms.");
+      // }
       return result;
      }
      delay(loopCount*100);

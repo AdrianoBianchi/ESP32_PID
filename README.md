@@ -263,7 +263,7 @@ myESP32PID = new ESP32PID(readInput, setOutput, settings);
 // int pid2Band = 10;
 // int dataLogDelay = 10000; // 10 seconds - gives about 40 minutes of chart
 // int SettingAdjustmentMultiple = 1;
-// unsigned int maxSensorQueryTime = 5000; // max amount of time in MS to spend trying to get valid result from each sensor
+// unsigned int maxSensorQueryTime = 10000; // max amount of time in MS to spend trying to get valid result from each sensor
 
 
 ```

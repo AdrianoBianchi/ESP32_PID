@@ -19,7 +19,12 @@ class ESP32PID{
     void useOutputWindow(int windowPeriodSeconds);
     void useRedundantInput(double (*readInputFunction_)(), int maxDifference, bool useAverage=false);
     void enableWebServer();
+    pid_state_values getPidState();
+    input_state getInputState();
+    esp32_pid_settings getSettings();
+    double getOutput();
     int errorOutputValue = 0;
+
   private:
     struct esp32_pid_settings _settings;
     struct output_window_values outputWindow; 
