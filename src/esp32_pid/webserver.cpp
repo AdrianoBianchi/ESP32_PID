@@ -36,6 +36,7 @@ WebServer::WebServer( input_state *inputState_,
   _inputLog = inputLog;
   _setpointLog = setpointLog;
   _outputLog = outputLog;
+  logger = new Logger("Webserver");
 }
 
 void WebServer::sendResponseHeaders(){
@@ -49,7 +50,7 @@ void WebServer::sendResponseHeaders(){
 };
 
 void WebServer::send404(){
-  // Serial.println("No route found, sending 404");
+  logger->log(LOG_LEVEL_DEBUG, "send404", "No route found for " + header + " , sending 404");
   client.println("HTTP/1.1 404 Not Found");
   client.println();
 }
@@ -57,7 +58,7 @@ void WebServer::send404(){
 void WebServer::parseRoute(){
   for(int i=0; i<ROUTES_LEN; i++){
     if(header.indexOf(myRoutes[i].requestType + " " + myRoutes[i].route) == 0 ){
-      // Serial.println("Found Matching Route: " + myRoutes[i].requestType + " " + myRoutes[i].route);
+      logger->log(LOG_LEVEL_DEBUG, "send404", "Found Matching Route: " + myRoutes[i].requestType + " " + myRoutes[i].route);
       sendResponseHeaders();
       (*myRoutes[i].handler)(*this);
       return;
@@ -68,21 +69,37 @@ void WebServer::parseRoute(){
 };
 
 void WebServer::checkServerOnline(){
-  if(!wifiLastOnline && millis() - lastWifiConnectionCheck < WIFI_CONNECTION_CHECK_TIMEOUT){
-    // Wifi wasn't online last time we checked, wait to recheck
+  if(millis() - lastWifiConnectionCheck < WIFI_CONNECTION_CHECK_TIMEOUT){
+    // Only check every so often based on WIFI_CONNECTION_CHECK_TIMEOUT var
     return;
   }
+  lastWifiConnectionCheck = millis();
+
   if(WiFi.status() != WL_CONNECTED){
-    Serial.println("Error Starting Server, No WIFI Connection!");
-    lastWifiConnectionCheck = millis();
-    return;
+    if(serverStarted){
+      // WIFI previously connected but now error, RESTART
+      logger->log(LOG_LEVEL_WARN, "checkServerOnline", "WIFI Connection lost!  Reconnecting...");
+      WiFi.disconnect();
+      WiFi.reconnect();
+      serverStarted = false;
+    }else{
+      // Server not started yet, waiting for initial wifi connection
+      logger->log(LOG_LEVEL_WARN, "checkServerOnline", "Error Starting Server, No WIFI Connection!");
+    }
+
   }
-  if(!serverStarted){
+  if(!serverStarted && WiFi.status() == WL_CONNECTED){
+    // server not started but now we have wifi, so start server.
     myserver.begin();
-    Serial.println("Server Started. IP address: " + WiFi.localIP().toString() );
+    logger->log(LOG_LEVEL_INFO, "checkServerOnline", "Server Started. IP address: " + WiFi.localIP().toString() );
     serverStarted = true;
   }
-  wifiLastOnline = true;
+
+
+
+    
+
+
 }
 
 
@@ -101,7 +118,7 @@ void WebServer::readRequest(){
         currentlyReceiving = true; 
         clientConnectStartTime = millis();
         lastReceiveTime = millis();
-        // Serial.println("New Connection");
+        logger->log(LOG_LEVEL_DEBUG, "readRequest", "New Connection");
       }
     else{ return; }
   }
@@ -148,7 +165,7 @@ void WebServer::closeConnection(){
   currentLine = "";
   currentlyReceiving = false;
   client.stop();
-  // Serial.println("Connection closed total time: " + String(millis()-clientConnectStartTime));
+  logger->log(LOG_LEVEL_DEBUG, "closeConnection", "Connection closed total time: " + String(millis()-clientConnectStartTime));
 }
 
 

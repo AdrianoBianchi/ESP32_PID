@@ -5,6 +5,7 @@
 #include "datatypes.h"
 #include <WiFi.h>
 #include "data_logger.h"
+#include "logger.h"
 
 
 
@@ -50,6 +51,7 @@ class WebServer{
     bool serverStarted = false;
     unsigned long lastWifiConnectionCheck = 0;
     bool wifiLastOnline = false;
+    Logger *logger;
 };
 
 struct Route{

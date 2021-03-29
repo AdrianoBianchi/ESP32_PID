@@ -1,12 +1,11 @@
 #include "Arduino.h"
 #include "input_.h"
-#define DEBUG
-
 
 
 Input_::Input_(double (*readInputFunction_)())
 {
   readInputA = readInputFunction_;
+  logger = new Logger("Input_");
 }
 
 input_state Input_::read()
@@ -47,24 +46,23 @@ input_state Input_::read()
       myState.value = InputA;
     }
 
-    // PRINT ERROR TO CONSOLE
-    #ifdef DEBUG
-      switch(myState.error) {
-        case SENSOR1_ERROR:
-          Serial.println("Sensor 1 error." );
-          break;
-        case SENSOR2_ERROR:
-          Serial.println("Sensor 2 error." );
-          break;
-        case REDUNDANT_SENSOR_MISMATCH:
-          if(lastReadingA != InputA && lastReadingB != InputB){
-            Serial.println("REDUNDANT SENSOR DISAGREEMENT! Sensor 1: " + String(InputA) + ", Sensor 2: " + String(InputB) + ". Max allowed difference " + String(redundantMaxDifference) );
-          } 
-          break;
-        default:
-          break;
-      }
-    #endif
+
+    switch(myState.error) {
+      case SENSOR1_ERROR:
+        logger->log(LOG_LEVEL_ERROR, "read","Sensor 1 error." );
+        break;
+      case SENSOR2_ERROR:
+        logger->log(LOG_LEVEL_ERROR, "read","Sensor 2 error." );
+        break;
+      case REDUNDANT_SENSOR_MISMATCH:
+        if(lastReadingA != InputA && lastReadingB != InputB){
+          logger->log(LOG_LEVEL_ERROR, "read", "REDUNDANT SENSOR DISAGREEMENT! Sensor 1: " + String(InputA) + ", Sensor 2: " + String(InputB) + ". Max allowed difference " + String(redundantMaxDifference) );
+        } 
+        break;
+      default:
+        break;
+    }
+
     
     myState.input1 = InputA;
     myState.input2 = InputB;
@@ -77,7 +75,7 @@ input_state Input_::read()
   // Failsafe
   if( isnan(InputA) ){
     myState.error = SENSOR1_ERROR;
-    Serial.println("Sensor error." );
+    logger->log(LOG_LEVEL_WARN, "read","Sensor error." );
   }
   else{
     myState.value = InputA;

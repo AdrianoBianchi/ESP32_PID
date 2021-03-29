@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "datatypes.h"
+#include "logger.h"
 
 #define SENSOR1_ERROR 1 
 #define SENSOR2_ERROR 2 
@@ -23,6 +24,7 @@ class Input_{
     int redundantMaxDifference;
     double lastReadingA;
     double lastReadingB;
+    Logger *logger;
 
 };
 

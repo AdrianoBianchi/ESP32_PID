@@ -114,7 +114,7 @@ double ESP32PID::calculateWindowOutput(double output){
 
     if( outputWindow.cycleTimeElapsed >= outputWindow.windowLengthMs){ 
       outputWindow.cycleStartTime = millis();
-      Serial.println("resetting cycle time");
+      // Serial.println("resetting cycle time");
       outputWindow.cycleOnTime = output/100.0*outputWindow.windowLengthMs;
       outputWindow.cycleTimeElapsed = millis() - outputWindow.cycleStartTime;
     }
